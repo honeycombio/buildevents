@@ -1,4 +1,4 @@
-# buildevents
+# buildevents [![Build Status](https://travis-ci.org/honeycombio/buildevents.svg?branch=master)](https://travis-ci.org/honeycombio/buildevents)
 
 buildevents is a small binary used to help instrument Travis-CI builds. It is installed during the setup phase and then invoked as part of each step in order to visualize the build as a trace in Honeycomb
 
@@ -8,7 +8,7 @@ You need to add an environment variable to your Travis build (done through the T
 
 Other optional environment variables available:
 
-* `BUILDEVENT_URL` the base URL back to the builds. This is used to construct a link back to the build log from within the trace. It should look something like `https://travis-ci.org/honeycombio/libhoney-go/builds/`
+* `BUILDEVENT_URL` the base URL back to the builds. This is used to construct a link back to the build log from within the trace. It should look something like `https://travis-ci.org/honeycombio/buildevents/builds/`
 * `BUILDEVENT_DATASET` overrides the default Honeycomb dataset to use. Default is `travis-ci builds`
 * `BUILDEVENT_APIHOST` overrides the API target for sending Honeycomb traces.  Default is `https://api.honeycomb.io/`
 
