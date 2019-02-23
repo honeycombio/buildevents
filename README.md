@@ -1,4 +1,4 @@
-# buildevents helps make Honeycomb traces out of Travis-CI builds
+# buildevents
 
 buildevents is a small binary used to help instrument Travis-CI builds. It is installed during the setup phase and then invoked as part of each step in order to visualize the build as a trace in Honeycomb
 
