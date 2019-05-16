@@ -6,8 +6,7 @@ The trace that you get at the end represents the entire build. It has spans for 
 
 Here's an example showing a build that ran on CircleCI. It goes through running go tests, setting up javascript dependencies, triggers js_build and poodle_test in parallel after dependencies are configured, and then continues off below the captured portion of the waterfall.
 
-<!-- TODO upload new screenshot -->
-<!-- ![buildevents_trace](https://user-images.githubusercontent.com/361454/53279652-23e34700-36c7-11e9-876c-4dc716416393.png) -->
+![CircleCI_Build_Trace](https://user-images.githubusercontent.com/361454/57872910-ac9eea00-77c1-11e9-8bdd-db7a870dcd61.png)
 
 # Setup
 
