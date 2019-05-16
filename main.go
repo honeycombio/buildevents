@@ -15,13 +15,19 @@ import (
 	libhoney "github.com/honeycombio/libhoney-go"
 )
 
-func sendTraceRoot(name, buildStatus string, timestamp time.Time, duration time.Duration) {
+// buildevents expects to get some unchanging values from the environment and
+// the rest as positional arguments on the command line.
+//
+// see README.md for detailed usage information
+
+func sendTraceRoot(name, traceID, buildStatus string, timestamp time.Time, duration time.Duration) {
 	ev := libhoney.NewEvent()
 	ev.Add(map[string]interface{}{
-		"service_name": "build",
-		"name":         name,
-		"status":       buildStatus,
-		"duration_ms":  duration / time.Millisecond,
+		"service_name":  "build",
+		"trace.span_id": traceID,
+		"name":          name,
+		"status":        buildStatus,
+		"duration_ms":   duration / time.Millisecond,
 	})
 	ev.Timestamp = timestamp
 	ev.Send()
@@ -79,7 +85,7 @@ func handleBuild(traceID string) {
 	secondsSinceEpoch, _ := strconv.ParseInt(startTime, 10, 64)
 
 	startUnix := time.Unix(secondsSinceEpoch, 0)
-	sendTraceRoot(name, buildStatus, startUnix, time.Since(startUnix))
+	sendTraceRoot(name, traceID, buildStatus, startUnix, time.Since(startUnix))
 }
 
 func handleStep() error {
@@ -138,15 +144,22 @@ func handleCmd() error {
 }
 
 func main() {
-	// TODO readme comments about setting Travis env vars for the apikey, and that it's the only required argument
 	apikey, _ := os.LookupEnv("BUILDEVENT_APIKEY")
 	dataset, _ := os.LookupEnv("BUILDEVENT_DATASET")
 	apihost, _ := os.LookupEnv("BUILDEVENT_APIHOST")
 	buildurl, _ := os.LookupEnv("BUILDEVENT_URL")
+	ciProvider, _ := os.LookupEnv("BUILDEVENT_CIPROVIDER")
+	if ciProvider == "" {
+		if _, present := os.LookupEnv("TRAVIS_BUILD_NUMBER"); present {
+			ciProvider = "Travis-CI"
+		} else if _, present := os.LookupEnv("CIRCLE_WORKFLOW_ID"); present {
+			ciProvider = "CircleCI"
+		}
+	}
 
 	// use defaults for dataset and apihost if they're unset.
 	if dataset == "" {
-		dataset = "travis-ci builds"
+		dataset = "buildevents"
 	}
 	if apihost == "" {
 		apihost = "https://api.honeycomb.io"
@@ -162,9 +175,15 @@ func main() {
 	traceID := os.Args[2]
 
 	// add the build URL to all spans
-	libhoney.AddField("build_url", buildurl+traceID)
+	if buildurl != "" {
+		libhoney.AddField("build_url", buildurl+traceID)
+	}
+	if ciProvider != "" {
+		libhoney.AddField("ci_provider", ciProvider)
+	}
 	libhoney.AddField("trace.trace_id", traceID)
 
+	responses := libhoney.Responses()
 	var err error
 	if spanType == "cmd" {
 		err = handleCmd()
@@ -175,8 +194,11 @@ func main() {
 		// there can be no error here
 		handleBuild(traceID)
 	}
-	libhoney.Close()
 
+	// actually wait for the response
+	_ = <-responses
+
+	// if the command we ran exitted with an error, let's exit with the same error
 	if err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
