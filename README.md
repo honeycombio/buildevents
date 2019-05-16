@@ -30,7 +30,7 @@ In every subsequent step, you must set a start and span ID as environment variab
 ```yaml
 script:
   - STEP_START=$(date +%s)
-  - STEP_SPAN_ID=$(echo script | sha256sum | awk '{print $1}')
+  - STEP_SPAN_ID=$(echo $RANDOM | sha256sum | awk '{print $1}')
   - ...
   - ...   regular content of the 'script' step
   - ...
