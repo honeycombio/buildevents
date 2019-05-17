@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  aws-cli: circleci/aws-cli@0.1.13
-
 executors:
   linuxgo:
     working_directory: /go/src/github.com/honeycombio/buildevents
@@ -30,14 +27,7 @@ jobs:
     steps:
       - attach_workspace:
           at: workspace
-      - aws-cli/install
-      - aws-cli/configure:
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          aws-region: AWS_REGION
-      # push to both versioned spot and "latest" download
-      - run: aws s3 cp workspace/buildevents s3://honeycomb-builds/honeycombio/buildevents/${CIRCLE_BUILD_NUM}/buildevents
-      - run: aws s3 cp workspace/buildevents s3://honeycomb-builds/honeycombio/buildevents/latest/buildevents
+      - # stub for pushing github release
 
 workflows:
   build:
