@@ -11,23 +11,28 @@ jobs:
     executor: linuxgo
     steps:
       - checkout
-      - go test -v ./...
+      - run: go test -v ./...
   build:
     executor: linuxgo
     steps:
       - checkout
-      - run: go install ./...
-      - run: mkdir workspace; cp $GOPATH/bin/buildevents workspace/
+      - run: go install -ldflags "-X main.Version=${CIRCLE_TAG}+${CIRCLE_SHA1}" ./...
+      - run: mkdir artifacts; cp $GOPATH/bin/buildevents artifacts/
       - persist_to_workspace:
-          root: workspace
+          root: artifacts
           paths:
             - buildevents
   publish:
-    executor: linuxgo
+    docker:
+      - image: cibuilds/github:0.12.1
     steps:
       - attach_workspace:
-          at: workspace
-      - # stub for pushing github release
+          at: artifacts
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            VERSION=$(artifacts/buildevents --version)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${VERSION} ./artifacts/
 
 workflows:
   build:
@@ -40,5 +45,5 @@ workflows:
           requires:
             - build
           filters:
-            branches:
-              only: master
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
