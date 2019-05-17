@@ -16,6 +16,9 @@ import (
 	"github.com/honeycombio/libhoney-go/transmission"
 )
 
+// Version will be set by CircleCI based on a git tag and the commit hash
+var Version string
+
 // buildevents expects to get some unchanging values from the environment and
 // the rest as positional arguments on the command line.
 //
@@ -219,6 +222,17 @@ func main() {
 		libhoney.Init(libhoney.Config{
 			Transmission: &transmission.DiscardSender{},
 		})
+	}
+
+	if Version == "" {
+		Version = "dev"
+	}
+	libhoney.AddField("meta.version", Version)
+
+	// respond to ./buildevents --version in order to enable circleci to tag releases
+	if os.Args[1] == "--version" {
+		fmt.Println(Version)
+		os.Exit(0)
 	}
 
 	if len(os.Args) < 4 {
