@@ -40,9 +40,14 @@ workflows:
       - build:
           requires:
             - test
+          filters:
+            tags:
+              only: /.*/
       - publish:
           requires:
             - build
           filters:
             tags:
-              only: /^v\d+\.\d+\.\d+$/
+              only: /^v\d+\.\d+\.\d+/
+            branches:
+              ignore: /.*/
