@@ -13,6 +13,7 @@ import (
 	"time"
 
 	libhoney "github.com/honeycombio/libhoney-go"
+	"github.com/honeycombio/libhoney-go/transmission"
 )
 
 // buildevents expects to get some unchanging values from the environment and
@@ -204,11 +205,18 @@ func main() {
 		apihost = "https://api.honeycomb.io"
 	}
 
-	libhoney.Init(libhoney.Config{
-		WriteKey: apikey,
-		Dataset:  dataset,
-		APIHost:  apihost,
-	})
+	if apikey != "" {
+		libhoney.Init(libhoney.Config{
+			WriteKey: apikey,
+			Dataset:  dataset,
+			APIHost:  apihost,
+		})
+	} else {
+		// no API key set, initialize libhoney to drop all events
+		libhoney.Init(libhoney.Config{
+			Transmission: &transmission.DiscardSender{},
+		})
+	}
 
 	if len(os.Args) < 4 {
 		usage()
@@ -225,7 +233,6 @@ func main() {
 
 	addEnvVars(ciProvider)
 
-	responses := libhoney.Responses()
 	var err error
 	if spanType == "cmd" {
 		err = handleCmd()
@@ -237,8 +244,7 @@ func main() {
 		handleBuild(traceID)
 	}
 
-	// actually wait for the response
-	_ = <-responses
+	libhoney.Close()
 
 	// if the command we ran exitted with an error, let's exit with the same error
 	if err != nil {
