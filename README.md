@@ -17,10 +17,10 @@ Getting your build ready to use `buildevents` involves:
 
 ## Installation
 
-If you have a working go environment in your build, the easiest way to install `buildevents` is via `go install`.
+If you have a working go environment in your build, the easiest way to install `buildevents` is via `go get`.
 
 ```
-go get https://github.com/honeycombio/buildevents/
+go get github.com/honeycombio/buildevents/
 ```
 
 If this doesn't work for you, please [let us know](mailto:support@honeycomb.io) - we'd love to hear what would work.
@@ -163,7 +163,7 @@ env:
 install:
   - STEP_START=$(date +%s)
   - STEP_SPAN_ID=$(echo install | sum | cut -f 1 -d \ )
-  - go get https://github.com/honeycombio/buildevents/
+  - go get github.com/honeycombio/buildevents/
   - # ... any other setup necessary for your build
   - buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START install
 
@@ -217,7 +217,7 @@ jobs:
       - run: |
           mkdir -p buildevents/bin
           date +%s > buildevents/build_start
-      - run: go install https://github.com/honeycombio/buildevents
+      - run: go get github.com/honeycombio/buildevents
       - run: cp $GOPATH/bin/buildevents buildevents/bin/
       - persist_to_workspace:
           root: buildevents

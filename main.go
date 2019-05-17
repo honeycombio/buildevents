@@ -163,10 +163,13 @@ func addEnvVars(ciProvider string) {
 		}
 	case "travis-ci", "travisci", "travis":
 		envVars = map[string]string{
-			"TRAVIS_BRANCH":        "branch",
-			"TRAVIS_BUILD_NUMBER":  "build_num",
-			"TRAVIS_BUILD_WEB_URL": "build_url",
-			"TRAVIS_REPO_SLUG":     "repo",
+			"TRAVIS_BRANCH":              "branch",
+			"TRAVIS_BUILD_NUMBER":        "build_num",
+			"TRAVIS_BUILD_WEB_URL":       "build_url",
+			"TRAVIS_PULL_REQUEST":        "pr_number",
+			"TRAVIS_PULL_REQUEST_BRANCH": "pr_branch",
+			"TRAVIS_PULL_REQUEST_SLUG":   "pr_repo",
+			"TRAVIS_REPO_SLUG":           "repo",
 		}
 	}
 	for envVar, fieldName := range envVars {
