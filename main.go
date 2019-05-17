@@ -143,16 +143,55 @@ func handleCmd() error {
 	return err
 }
 
+// addEnvVars adds a bunch of fields to every span with useful information
+// about the build
+func addEnvVars(ciProvider string) {
+	// envVars is a map of environment variable to event field name
+	var envVars map[string]string
+	switch strings.ToLower(ciProvider) {
+	case "circleci", "circle-ci", "circle":
+		envVars = map[string]string{
+			"CIRCLE_BRANCH":         "branch",
+			"CIRCLE_BUILD_NUM":      "build_num",
+			"CIRCLE_BUILD_URL":      "build_url", // overwrites buildevent_url+traceID
+			"CIRCLE_JOB":            "job_name",
+			"CIRCLE_PR_NUMBER":      "pr_number",
+			"CIRCLE_PR_REPONAME":    "pr_repo",
+			"CIRCLE_PR_USER":        "pr_user",
+			"CIRCLE_REPOSITORY_URL": "repo",
+		}
+	case "travis-ci", "travisci", "travis":
+		envVars = map[string]string{
+			"TRAVIS_BRANCH":        "branch",
+			"TRAVIS_BUILD_NUMBER":  "build_num",
+			"TRAVIS_BUILD_WEB_URL": "build_url",
+			"TRAVIS_REPO_SLUG":     "repo",
+		}
+	}
+	for envVar, fieldName := range envVars {
+		if val, ok := os.LookupEnv(envVar); ok {
+			libhoney.AddField(fieldName, val)
+		}
+	}
+}
+
+func usage() {
+	fmt.Printf(`Usage: buildevents [build,step,cmd] ... args
+
+	For documentation, see https://github.com/honeycombio/buildevents
+
+`)
+}
+
 func main() {
 	apikey, _ := os.LookupEnv("BUILDEVENT_APIKEY")
 	dataset, _ := os.LookupEnv("BUILDEVENT_DATASET")
 	apihost, _ := os.LookupEnv("BUILDEVENT_APIHOST")
-	buildurl, _ := os.LookupEnv("BUILDEVENT_URL")
 	ciProvider, _ := os.LookupEnv("BUILDEVENT_CIPROVIDER")
 	if ciProvider == "" {
-		if _, present := os.LookupEnv("TRAVIS_BUILD_NUMBER"); present {
+		if _, present := os.LookupEnv("TRAVIS"); present {
 			ciProvider = "Travis-CI"
-		} else if _, present := os.LookupEnv("CIRCLE_WORKFLOW_ID"); present {
+		} else if _, present := os.LookupEnv("CIRCLECI"); present {
 			ciProvider = "CircleCI"
 		}
 	}
@@ -171,17 +210,20 @@ func main() {
 		APIHost:  apihost,
 	})
 
+	if len(os.Args) < 4 {
+		usage()
+		os.Exit(1)
+	}
+
 	spanType := os.Args[1]
 	traceID := os.Args[2]
 
-	// add the build URL to all spans
-	if buildurl != "" {
-		libhoney.AddField("build_url", buildurl+traceID)
-	}
 	if ciProvider != "" {
 		libhoney.AddField("ci_provider", ciProvider)
 	}
 	libhoney.AddField("trace.trace_id", traceID)
+
+	addEnvVars(ciProvider)
 
 	responses := libhoney.Responses()
 	var err error

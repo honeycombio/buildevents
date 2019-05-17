@@ -33,10 +33,9 @@ There is one required environment variable; it will hold your Honeycomb API key 
 
 There are several other optional enviornment variables that will adjust the behavior of `buildevents`:
 
-* `BUILDEVENT_URL` the base URL back to the builds. This is used to construct a link back to the build log from within the trace. It will have the Trace ID appended to it. For example, in Travis-CI a URL like `https://travis-ci.org/honeycombio/buildevents/builds/` will combine with using the Build ID as the Trace ID and create a working link to the specific build from within the trace.
 * `BUILDEVENT_DATASET` sets the Honeycomb dataset to use. The default is `buildevents`
 * `BUILDEVENT_APIHOST` sets the API target for sending Honeycomb traces.  Default is `https://api.honeycomb.io/`
-* `BUILDEVENT_CIPROVIDER` if set, a field in all spans named `ci_provider` will contain this value
+* `BUILDEVENT_CIPROVIDER` if set, a field in all spans named `ci_provider` will contain this value. If unset, `buildevents` will inspect the environment to try and detect Travis-CI and CircleCI (by looking for the environment variables `TRAVIS` and `CIRCLECI` respectively). If either Travis-CI or CircleCI are detected, `buildevents` will add a number of additional fields from the environment, such as the branch name, the repository, the build number, and so on. If detection fails and you are on Travis-CI or CircleCI, setting this to `Travis-CI` or `CircleCI` precisely will also trigger the automatic field additions.
 
 ## Trace Identifier
 
