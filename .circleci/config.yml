@@ -1,0 +1,44 @@
+version: 2.1
+
+executors:
+  linuxgo:
+    working_directory: /go/src/github.com/honeycombio/buildevents
+    docker:
+      - image: circleci/golang:1.10
+
+jobs:
+  test:
+    executor: linuxgo
+    steps:
+      - checkout
+      - go test -v ./...
+  build:
+    executor: linuxgo
+    steps:
+      - checkout
+      - run: go install ./...
+      - run: mkdir workspace; cp $GOPATH/bin/buildevents workspace/
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - buildevents
+  publish:
+    executor: linuxgo
+    steps:
+      - attach_workspace:
+          at: workspace
+      - # stub for pushing github release
+
+workflows:
+  build:
+    jobs:
+      - test
+      - build:
+          requires:
+            - test
+      - publish:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
