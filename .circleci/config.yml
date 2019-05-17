@@ -17,7 +17,7 @@ jobs:
     steps:
       - checkout
       - run: go install -ldflags "-X main.Version=${CIRCLE_TAG}+${CIRCLE_SHA1}" ./...
-      - run: mkdir artifacts; cp $GOPATH/bin/buildevents artifacts/
+      - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents artifacts/
       - persist_to_workspace:
           root: artifacts
           paths:
