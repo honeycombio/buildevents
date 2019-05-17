@@ -13,15 +13,22 @@ import (
 	"time"
 
 	libhoney "github.com/honeycombio/libhoney-go"
+	"github.com/honeycombio/libhoney-go/transmission"
 )
 
-func sendTraceRoot(name, buildStatus string, timestamp time.Time, duration time.Duration) {
+// buildevents expects to get some unchanging values from the environment and
+// the rest as positional arguments on the command line.
+//
+// see README.md for detailed usage information
+
+func sendTraceRoot(name, traceID, buildStatus string, timestamp time.Time, duration time.Duration) {
 	ev := libhoney.NewEvent()
 	ev.Add(map[string]interface{}{
-		"service_name": "build",
-		"name":         name,
-		"status":       buildStatus,
-		"duration_ms":  duration / time.Millisecond,
+		"service_name":  "build",
+		"trace.span_id": traceID,
+		"name":          name,
+		"status":        buildStatus,
+		"duration_ms":   duration / time.Millisecond,
 	})
 	ev.Timestamp = timestamp
 	ev.Send()
@@ -79,7 +86,7 @@ func handleBuild(traceID string) {
 	secondsSinceEpoch, _ := strconv.ParseInt(startTime, 10, 64)
 
 	startUnix := time.Unix(secondsSinceEpoch, 0)
-	sendTraceRoot(name, buildStatus, startUnix, time.Since(startUnix))
+	sendTraceRoot(name, traceID, buildStatus, startUnix, time.Since(startUnix))
 }
 
 func handleStep() error {
@@ -137,33 +144,94 @@ func handleCmd() error {
 	return err
 }
 
+// addEnvVars adds a bunch of fields to every span with useful information
+// about the build
+func addEnvVars(ciProvider string) {
+	// envVars is a map of environment variable to event field name
+	var envVars map[string]string
+	switch strings.ToLower(ciProvider) {
+	case "circleci", "circle-ci", "circle":
+		envVars = map[string]string{
+			"CIRCLE_BRANCH":         "branch",
+			"CIRCLE_BUILD_NUM":      "build_num",
+			"CIRCLE_BUILD_URL":      "build_url", // overwrites buildevent_url+traceID
+			"CIRCLE_JOB":            "job_name",
+			"CIRCLE_PR_NUMBER":      "pr_number",
+			"CIRCLE_PR_REPONAME":    "pr_repo",
+			"CIRCLE_PR_USER":        "pr_user",
+			"CIRCLE_REPOSITORY_URL": "repo",
+		}
+	case "travis-ci", "travisci", "travis":
+		envVars = map[string]string{
+			"TRAVIS_BRANCH":        "branch",
+			"TRAVIS_BUILD_NUMBER":  "build_num",
+			"TRAVIS_BUILD_WEB_URL": "build_url",
+			"TRAVIS_REPO_SLUG":     "repo",
+		}
+	}
+	for envVar, fieldName := range envVars {
+		if val, ok := os.LookupEnv(envVar); ok {
+			libhoney.AddField(fieldName, val)
+		}
+	}
+}
+
+func usage() {
+	fmt.Printf(`Usage: buildevents [build,step,cmd] ... args
+
+	For documentation, see https://github.com/honeycombio/buildevents
+
+`)
+}
+
 func main() {
-	// TODO readme comments about setting Travis env vars for the apikey, and that it's the only required argument
 	apikey, _ := os.LookupEnv("BUILDEVENT_APIKEY")
 	dataset, _ := os.LookupEnv("BUILDEVENT_DATASET")
 	apihost, _ := os.LookupEnv("BUILDEVENT_APIHOST")
-	buildurl, _ := os.LookupEnv("BUILDEVENT_URL")
+	ciProvider, _ := os.LookupEnv("BUILDEVENT_CIPROVIDER")
+	if ciProvider == "" {
+		if _, present := os.LookupEnv("TRAVIS"); present {
+			ciProvider = "Travis-CI"
+		} else if _, present := os.LookupEnv("CIRCLECI"); present {
+			ciProvider = "CircleCI"
+		}
+	}
 
 	// use defaults for dataset and apihost if they're unset.
 	if dataset == "" {
-		dataset = "travis-ci builds"
+		dataset = "buildevents"
 	}
 	if apihost == "" {
 		apihost = "https://api.honeycomb.io"
 	}
 
-	libhoney.Init(libhoney.Config{
-		WriteKey: apikey,
-		Dataset:  dataset,
-		APIHost:  apihost,
-	})
+	if apikey != "" {
+		libhoney.Init(libhoney.Config{
+			WriteKey: apikey,
+			Dataset:  dataset,
+			APIHost:  apihost,
+		})
+	} else {
+		// no API key set, initialize libhoney to drop all events
+		libhoney.Init(libhoney.Config{
+			Transmission: &transmission.DiscardSender{},
+		})
+	}
+
+	if len(os.Args) < 4 {
+		usage()
+		os.Exit(1)
+	}
 
 	spanType := os.Args[1]
 	traceID := os.Args[2]
 
-	// add the build URL to all spans
-	libhoney.AddField("build_url", buildurl+traceID)
+	if ciProvider != "" {
+		libhoney.AddField("ci_provider", ciProvider)
+	}
 	libhoney.AddField("trace.trace_id", traceID)
+
+	addEnvVars(ciProvider)
 
 	var err error
 	if spanType == "cmd" {
@@ -175,8 +243,10 @@ func main() {
 		// there can be no error here
 		handleBuild(traceID)
 	}
+
 	libhoney.Close()
 
+	// if the command we ran exitted with an error, let's exit with the same error
 	if err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
