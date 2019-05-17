@@ -4,7 +4,7 @@ github.com/facebookgo/clock
 github.com/facebookgo/limitgroup
 # github.com/facebookgo/muster v0.0.0-20150708232844-fd3d7953fd52
 github.com/facebookgo/muster
-# github.com/honeycombio/libhoney-go v1.9.2
+# github.com/honeycombio/libhoney-go v1.10.0
 github.com/honeycombio/libhoney-go
 github.com/honeycombio/libhoney-go/transmission
 # gopkg.in/alexcesaro/statsd.v2 v2.0.0
