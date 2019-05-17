@@ -18,7 +18,7 @@ jobs:
       - checkout
       - run: go install -ldflags "-X main.Version=${CIRCLE_TAG}+${CIRCLE_SHA1}" ./...
       - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents artifacts/
-      - run: find artifacts -ls
+      - run: ls -al artifacts
       - persist_to_workspace:
           root: artifacts
           paths:
@@ -29,7 +29,7 @@ jobs:
     steps:
       - attach_workspace:
           at: artifacts
-      - run: find artifacts -ls
+      - run: ls -al artifacts
       - run:
           name: "Publish Release on GitHub"
           command: |
