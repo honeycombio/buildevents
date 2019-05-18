@@ -16,7 +16,7 @@ jobs:
     executor: linuxgo
     steps:
       - checkout
-      - run: go install -ldflags "-X main.Version=${CIRCLE_TAG}+${CIRCLE_SHA1}" ./...
+      - run: go install -ldflags "-X main.Version=${CIRCLE_TAG}" ./...
       - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents artifacts/
       - persist_to_workspace:
           root: artifacts
