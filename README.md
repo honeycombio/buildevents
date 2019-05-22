@@ -243,7 +243,7 @@ jobs:
     steps:
       - attach_workspace:
           at: buildevents
-      - run |
+      - run: |
           BUILD_START=$(cat buildevents/build_start)
           buildevents build $CIRCLE_WORKFLOW_ID $BUILD_START success
 
