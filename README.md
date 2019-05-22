@@ -57,13 +57,15 @@ The Build ID may already be available in the environment for your build:
 Now that `buildevents` is installed and configured, actually generating spans to send to Honeycomb involves invoking `buildevents` in various places throughout your build config.
 
 `buildevents` is invoked with one of three modes, `build`, `step`, and `cmd`.
-* The `build` mode sends the root span for the entire build. It should be called when the build finishes and records the duration of the entire build.
+* The `build` mode sends the root span for the entire build. It should be called when the build finishes and records the duration of the entire build. It emits a URL pointing to the generated trace in Honeycomb to STDOUT.
 * The `step` mode represents a block of related commands. In Travis-CI, this is one of `install`, `before_script`, `script`, and so on. In CircleCI, this most closely maps to a single job. It should be run at the end of the step.
 * The `cmd` mode invokes an individual command that is part of the build, such as running DB migrations or running a specific test suite. It must be able to be expressed as a single shell command - either a process like `go test` or a shell script. The command to run is the final argument to `buildevents` and will be launched via `bash -c` using `exec`.
 
 ## build
 
 Though listed first, running `buildevents` in `build` mode should actually be the last command that your build runs so that it can record the total running duration for the build. It does this by having the time the build started as one of the arguments passed in.
+
+The output of buildevents in `build` will be a link to the trace within Honeycomb. Take this URL and use it in the notifications your CI system emits to easily jump to the Honeycomb trace for a build. If the API Key used in this run is not valid, no output will be emitted.
 
 For the `build` step, you must first record the time the build started.
 * Travis-CI: the `env` section of the config file establishes some global variables in the environment. This is run before anything else, so gets a good start time.
@@ -82,9 +84,11 @@ env:
 ...
 
 after_failure:
-  - buildevents build $TRAVIS_BUILD_ID $BUILD_START failure
+  - traceURL=$(buildevents build $TRAVIS_BUILD_ID $BUILD_START failure)
+  - echo "Honeycomb Trace: $traceURL"
 after_success:
-  - buildevents build $TRAVIS_BUILD_ID $BUILD_START success
+  - traceURL=$(buildevents build $TRAVIS_BUILD_ID $BUILD_START success)
+  - echo "Honeycomb Trace: $traceURL"
 ```
 
 CircleCI example:
@@ -109,7 +113,9 @@ jobs:
           at: buildevents
       - run: |
           BUILD_START=$(cat buildevents/build_start)
-          ~/be/buildevents build $CIRCLE_WORKFLOW_ID $BUILD_START success
+          traceURL=$(~/be/buildevents build $CIRCLE_WORKFLOW_ID $BUILD_START success)
+          echo "Honeycomb Trace: $traceURL"
+
 ```
 ## step
 
@@ -193,8 +199,8 @@ after_success:
   - STEP_SPAN_ID=$(echo after_success | sum | cut -f 1 -d \ )
   - ./buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID build -- go install ./...
   - # ... tar up artifacts, upload them, etc.
-  - ./buildevents  step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START after_success
-  - ./buildevents  build $TRAVIS_BUILD_ID $BUILD_START success
+  - ./buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START after_success
+  - ./buildevents build $TRAVIS_BUILD_ID $BUILD_START success
 ```
 
 CircleCI example:
