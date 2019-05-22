@@ -104,8 +104,9 @@ func handleBuild(traceID, teamName, apiHost, dataset string) {
 		return
 	}
 	u.Path = path.Join(teamName, "datasets", dataset, "trace")
-	traceURL := fmt.Sprintf("%s?trace_id=%s&trace_start_ts=%s",
-		u.String(), traceID, startTime)
+	endTime := time.Now().Add(10 * time.Minute).Unix()
+	traceURL := fmt.Sprintf("%s?trace_id=%s&trace_start_ts=%s&trace_end_ts=%d",
+		u.String(), traceID, startTime, endTime)
 	fmt.Println(traceURL)
 }
 
