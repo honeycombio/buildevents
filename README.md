@@ -65,7 +65,7 @@ Now that `buildevents` is installed and configured, actually generating spans to
 
 Though listed first, running `buildevents` in `build` mode should actually be the last command that your build runs so that it can record the total running duration for the build. It does this by having the time the build started as one of the arguments passed in.
 
-The output of buildevents in `build` will be a link to the trace within Honeycomb. Take this URL and use it in the notifications your CI system emits to easily jump to the Honeycomb trace for a build.
+The output of buildevents in `build` will be a link to the trace within Honeycomb. Take this URL and use it in the notifications your CI system emits to easily jump to the Honeycomb trace for a build. If the API Key used in this run is not valid, no output will be emitted.
 
 For the `build` step, you must first record the time the build started.
 * Travis-CI: the `env` section of the config file establishes some global variables in the environment. This is run before anything else, so gets a good start time.
