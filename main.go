@@ -5,8 +5,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 	"syscall"
@@ -79,7 +81,7 @@ func runCommand(subcmd string) error {
 	return cmd.Wait()
 }
 
-func handleBuild(traceID string) {
+func handleBuild(traceID, teamName, apiHost, dataset string) {
 	// command line eg: buildevents build $TRAVIS_BUILD_ID $BUILD_START success
 
 	name := "build " + traceID
@@ -90,6 +92,21 @@ func handleBuild(traceID string) {
 
 	startUnix := time.Unix(secondsSinceEpoch, 0)
 	sendTraceRoot(name, traceID, buildStatus, startUnix, time.Since(startUnix))
+
+	// spit out the URL to the trace
+	if teamName == "" {
+		// no team name means the API key didn't resolve, so we have no trace
+		return
+	}
+	uiHost := strings.Replace(apiHost, "api", "ui", 1)
+	u, err := url.Parse(uiHost)
+	if err != nil {
+		return
+	}
+	u.Path = path.Join(teamName, "datasets", dataset, "trace")
+	traceURL := fmt.Sprintf("%s?trace_id=%s&trace_start_ts=%s",
+		u.String(), traceID, startTime)
+	fmt.Println(traceURL)
 }
 
 func handleStep() error {
@@ -211,7 +228,12 @@ func main() {
 		apihost = "https://api.honeycomb.io"
 	}
 
+	var teamName string
 	if apikey != "" {
+		teamName, _ = libhoney.VerifyAPIKey(libhoney.Config{
+			APIHost: apihost,
+			APIKey:  apikey,
+		})
 		libhoney.Init(libhoney.Config{
 			WriteKey: apikey,
 			Dataset:  dataset,
@@ -258,7 +280,7 @@ func main() {
 		handleStep()
 	} else {
 		// there can be no error here
-		handleBuild(traceID)
+		handleBuild(traceID, teamName, apihost, dataset)
 	}
 
 	libhoney.Close()
