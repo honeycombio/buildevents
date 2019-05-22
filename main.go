@@ -228,7 +228,23 @@ func main() {
 	if apihost == "" {
 		apihost = "https://api.honeycomb.io"
 	}
+	if Version == "" {
+		Version = "dev"
+	}
 
+	// respond to ./buildevents --version
+	if os.Args[1] == "--version" {
+		fmt.Println(Version)
+		os.Exit(0)
+	}
+
+	if len(os.Args) < 4 {
+		usage()
+		os.Exit(1)
+	}
+
+	// initialize libhoney
+	libhoney.UserAgentAddition = fmt.Sprintf("buildevents/%s", Version)
 	var teamName string
 	if apikey != "" {
 		teamName, _ = libhoney.VerifyAPIKey(libhoney.Config{
@@ -246,22 +262,7 @@ func main() {
 			Transmission: &transmission.DiscardSender{},
 		})
 	}
-
-	if Version == "" {
-		Version = "dev"
-	}
 	libhoney.AddField("meta.version", Version)
-
-	// respond to ./buildevents --version in order to enable circleci to tag releases
-	if os.Args[1] == "--version" {
-		fmt.Println(Version)
-		os.Exit(0)
-	}
-
-	if len(os.Args) < 4 {
-		usage()
-		os.Exit(1)
-	}
 
 	spanType := os.Args[1]
 	traceID := os.Args[2]
