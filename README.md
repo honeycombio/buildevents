@@ -25,8 +25,8 @@ go get github.com/honeycombio/buildevents/
 
 There is also a built binary (for linux) hosted on Github and available under the [releases](https://github.com/honeycombio/buildevents/releases) tab. The following two commands will down load and make executable the github-hosted binary.
 ```
-curl -L -o bin/buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents
-chmod 755 bin/buildevents
+curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents
+chmod 755 buildevents
 ```
 
 If this doesn't work for you, please [let us know](mailto:support@honeycomb.io) - we'd love to hear what would work.
@@ -93,19 +93,23 @@ jobs:
   setup:
     steps:
       - run: |
-          mkdir buildevents
-          date +%s > buildevents/build_start
+          mkdir -p ~/be
+          date +%s > ~/be/build_start
+      - run: |
+          curl -L -o ~/be/buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents
+          chmod 755 ~/be/buildevents
       - persist_to_workspace:
-          root: buildevents
+          root: ~/be
           paths:
             - build_start
+            - buildevents
   final:
     steps:
       - attach_workspace:
-          at: buildevents
+          at: ~/be
       - run |
           BUILD_START=$(cat buildevents/build_start)
-          buildevents build $CIRCLE_WORKFLOW_ID $BUILD_START success
+          ~/be/buildevents build $CIRCLE_WORKFLOW_ID $BUILD_START success
 ```
 ## step
 
@@ -169,27 +173,28 @@ env:
 install:
   - STEP_START=$(date +%s)
   - STEP_SPAN_ID=$(echo install | sum | cut -f 1 -d \ )
-  - go get github.com/honeycombio/buildevents/
+  - curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents
+  - chmod 755 buildevents
   - # ... any other setup necessary for your build
-  - buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START install
+  - ./buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START install
 
 script:
   - STEP_START=$(date +%s)
   - STEP_SPAN_ID=$(echo script | sum | cut -f 1 -d \ )
-  - buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID go-tests -- go test ./...
-  - buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID js-tests -- yarn test
-  - buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START script
+  - ./buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID go-tests -- go test ./...
+  - ./buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID js-tests -- yarn test
+  - ./buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START script
 
 after_failure:
-  - buildevents travis-ci build $TRAVIS_BUILD_ID $BUILD_START failure
+  - ./buildevents travis-ci build $TRAVIS_BUILD_ID $BUILD_START failure
 
 after_success:
   - STEP_START=$(date +%s)
   - STEP_SPAN_ID=$(echo after_success | sum | cut -f 1 -d \ )
-  - buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID build -- go install ./...
+  - ./buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID build -- go install ./...
   - # ... tar up artifacts, upload them, etc.
-  - buildevents  step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START after_success
-  - buildevents  build $TRAVIS_BUILD_ID $BUILD_START success
+  - ./buildevents  step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START after_success
+  - ./buildevents  build $TRAVIS_BUILD_ID $BUILD_START success
 ```
 
 CircleCI example:
