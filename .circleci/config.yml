@@ -6,6 +6,27 @@ executors:
     docker:
       - image: circleci/golang:1.10
 
+commands:
+  go-build:
+    parameters:
+      os:
+        description: Target operating system
+        type: enum
+        enum: ["linux", "darwin"]
+        default: "linux"
+      arch:
+        description: Target architecture
+        type: enum
+        enum: ["386", "amd64"]
+        default: "amd64"
+    steps:
+      - run: |
+          GOOS=<< parameters.os >> \
+          GOARCH=<< parameters.arch >> \
+          go build -ldflags "-X main.Version=${CIRCLE_TAG}" \
+          -o $GOPATH/bin/buildevents-<< parameters.os >>-<< parameters.arch >> \
+          ./...
+
 jobs:
   test:
     executor: linuxgo
@@ -16,12 +37,20 @@ jobs:
     executor: linuxgo
     steps:
       - checkout
-      - run: go install -ldflags "-X main.Version=${CIRCLE_TAG}" ./...
-      - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents artifacts/
+      - go-build:
+          os: linux
+          arch: "386"
+      - go-build:
+          os: linux
+          arch: amd64
+      - go-build:
+          os: darwin
+          arch: amd64
+      - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents-* artifacts/
       - persist_to_workspace:
           root: artifacts
           paths:
-            - buildevents
+            - buildevents-*
   publish:
     docker:
       - image: cibuilds/github:0.12.1
