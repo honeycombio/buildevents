@@ -21,7 +21,7 @@ jobs:
           steps:
             - checkout
             - buildevents/berun:
-                bename: go test
+                bename: "go test"
                 becommand: go test -v ./...
   build:
     executor: linuxgo
@@ -30,7 +30,7 @@ jobs:
           steps:
             - checkout
             - buildevents/berun:
-                bename: go install
+                bename: "go install"
                 becommand: go install -ldflags "-X main.Version=${CIRCLE_TAG}" ./...
             - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents artifacts/
             - persist_to_workspace:
