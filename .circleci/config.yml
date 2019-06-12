@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  buildevents: honeycombio/buildevents@0.0.2
+
 executors:
   linuxgo:
     working_directory: /go/src/github.com/honeycombio/buildevents
@@ -7,21 +10,33 @@ executors:
       - image: circleci/golang:1.10
 
 jobs:
+  setup:
+    executor: linuxgo
+    steps:
+      - buildevents/start_trace
   test:
     executor: linuxgo
     steps:
-      - checkout
-      - run: go test -v ./...
+      - buildevents/with_job_span:
+          steps:
+            - checkout
+            - buildevents/berun:
+                bename: go test
+                becommand: go test -v ./...
   build:
     executor: linuxgo
     steps:
-      - checkout
-      - run: go install -ldflags "-X main.Version=${CIRCLE_TAG}" ./...
-      - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents artifacts/
-      - persist_to_workspace:
-          root: artifacts
-          paths:
-            - buildevents
+      - buildevents/with_job_span:
+          steps:
+            - checkout
+            - buildevents/berun:
+                bename: go install
+                becommand: go install -ldflags "-X main.Version=${CIRCLE_TAG}" ./...
+            - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents artifacts/
+            - persist_to_workspace:
+                root: artifacts
+                paths:
+                  - buildevents
   publish:
     docker:
       - image: cibuilds/github:0.12.1
@@ -32,10 +47,19 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents
+  final:
+    executor: linuxgo
+    steps:
+      - buildevents/finish_trace:
+          result: success
 
 workflows:
   build:
     jobs:
+      - setup:
+          filters:
+            tags:
+              only: /.*/
       - test:
           filters:
             tags:
@@ -54,3 +78,10 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
+      - final:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /.*/
+
