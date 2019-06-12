@@ -20,6 +20,7 @@ jobs:
       - buildevents/with_job_span:
           steps:
             - checkout
+            ## method 1 to send a command span
             ## buildevent/berun is a circleci friendly way to create a buildevents command span
             - buildevents/berun:
                 bename: go_test
@@ -30,6 +31,7 @@ jobs:
       - buildevents/with_job_span:
           steps:
             - checkout
+            ## method 2 to send a command span
             ## the raw buildevents binary is also available in the $PATH but requires more arguments
             - run: buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID go_install -- go install -ldflags "-X main.Version=${CIRCLE_TAG}" ./...
             - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents artifacts/
