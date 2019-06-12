@@ -61,6 +61,8 @@ workflows:
             tags:
               only: /.*/
       - test:
+          requires:
+            - setup
           filters:
             tags:
               only: /.*/
