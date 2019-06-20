@@ -26,9 +26,9 @@ commands:
       ## method 1 to send a command span
       ## the raw buildevents binary is available in the $PATH but requires more arguments
       - run: |
-          buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID go_build -- \
           GOOS=<< parameters.os >> \
           GOARCH=<< parameters.arch >> \
+          buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID go_build -- \
           go build -ldflags "-X main.Version=${CIRCLE_TAG}" \
           -o $GOPATH/bin/buildevents-<< parameters.os >>-<< parameters.arch >> \
           ./...
