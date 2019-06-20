@@ -91,7 +91,6 @@ jobs:
       - buildevents/finish_trace:
           result: success
 
-
 workflows:
   build:
     jobs:
