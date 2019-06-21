@@ -39,6 +39,8 @@ jobs:
                 root: artifacts
                 paths:
                   - buildevents
+            - store_artifacts:
+                path: artifacts/
   publish:
     docker:
       - image: cibuilds/github:0.12.1

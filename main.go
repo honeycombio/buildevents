@@ -88,11 +88,22 @@ func handleBuild(traceID, teamName, apiHost, dataset string) {
 	startTime := os.Args[3]
 	buildStatus := os.Args[4]
 
-	secondsSinceEpoch, _ := strconv.ParseInt(startTime, 10, 64)
+	secondsSinceEpoch, _ := strconv.ParseInt(strings.TrimSpace(startTime), 10, 64)
 
 	startUnix := time.Unix(secondsSinceEpoch, 0)
 	sendTraceRoot(name, traceID, buildStatus, startUnix, time.Since(startUnix))
 
+	// spit out the URL to the trace
+	if teamName == "" {
+		// no team name means the API key didn't resolve, so we have no trace
+		fmt.Println("skipping printing out the trace because the Honeycomb API key did not resolve to a team name")
+		return
+	}
+	printTraceURL(traceID, teamName, apiHost, dataset, startUnix.Unix())
+
+}
+
+func printTraceURL(traceID, teamName, apiHost, dataset string, startUnix int64) {
 	// spit out the URL to the trace
 	if teamName == "" {
 		// no team name means the API key didn't resolve, so we have no trace
@@ -105,8 +116,8 @@ func handleBuild(traceID, teamName, apiHost, dataset string) {
 	}
 	u.Path = path.Join(teamName, "datasets", dataset, "trace")
 	endTime := time.Now().Add(10 * time.Minute).Unix()
-	traceURL := fmt.Sprintf("%s?trace_id=%s&trace_start_ts=%s&trace_end_ts=%d",
-		u.String(), traceID, startTime, endTime)
+	traceURL := fmt.Sprintf("%s?trace_id=%s&trace_start_ts=%d&trace_end_ts=%d",
+		u.String(), traceID, startUnix, endTime)
 	fmt.Println(traceURL)
 }
 
@@ -118,9 +129,14 @@ func handleStep() error {
 	startTime := os.Args[4]
 	name := os.Args[5]
 
-	secondsSinceEpoch, _ := strconv.ParseInt(startTime, 10, 64)
+	secondsSinceEpoch, _ := strconv.ParseInt(strings.TrimSpace(startTime), 10, 64)
 
 	startUnix := time.Unix(secondsSinceEpoch, 0)
+
+	if startUnix == time.Unix(0, 0) {
+		fmt.Printf("couldn't parse startTime of %s\n", startTime)
+		startUnix = time.Now()
+	}
 
 	ev := getTraceSpanEvent(parentSpanID, stepSpanID, "step", name, startUnix, time.Since(startUnix))
 	return ev.Send()
@@ -238,7 +254,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(os.Args) < 4 {
+	// every command needs at least two parameters - the command to run and the trace ID
+	if len(os.Args) < 2 {
 		usage()
 		os.Exit(1)
 	}
@@ -280,6 +297,12 @@ func main() {
 	} else if spanType == "step" {
 		// there can be no error here
 		handleStep()
+	} else if spanType == "watch" {
+		if ciProvider == "CircleCI" {
+			err = pollCircleAPI(traceID, teamName, apihost, dataset)
+		} else {
+			err = fmt.Errorf("watch command only valid on CircleCI")
+		}
 	} else {
 		// there can be no error here
 		handleBuild(traceID, teamName, apihost, dataset)
