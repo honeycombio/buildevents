@@ -14,12 +14,9 @@ import (
 // then declares the workflow finished and records success or failure same as
 // the `handleBuild` function
 func pollCircleAPI(traceID, teamName, apiHost, dataset string) error {
-	token, _ := os.LookupEnv("CIRCLE_API_TOKEN")
 	workflowID, _ := os.LookupEnv("CIRCLE_WORKFLOW_ID")
 	thisJobName, _ := os.LookupEnv("CIRCLE_JOB")
-	client := &circleci.Client{
-		Token: token,
-	}
+	client := &circleci.Client{}
 
 	wfJobs, err := getJobs(client, workflowID)
 	if err != nil {
