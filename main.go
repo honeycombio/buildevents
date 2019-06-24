@@ -228,6 +228,8 @@ func main() {
 	apikey, _ := os.LookupEnv("BUILDEVENT_APIKEY")
 	dataset, _ := os.LookupEnv("BUILDEVENT_DATASET")
 	apihost, _ := os.LookupEnv("BUILDEVENT_APIHOST")
+	// timeout is only for polling the circleci api
+	timeoutStr, _ := os.LookupEnv("BUILDEVENT_TIMEOUT")
 	ciProvider, _ := os.LookupEnv("BUILDEVENT_CIPROVIDER")
 	if ciProvider == "" {
 		if _, present := os.LookupEnv("TRAVIS"); present {
@@ -244,6 +246,15 @@ func main() {
 	if apihost == "" {
 		apihost = "https://api.honeycomb.io"
 	}
+	// use timeout default of 10min
+	if timeoutStr == "" {
+		timeoutStr = "10"
+	}
+	timeoutMin, err := strconv.Atoi(timeoutStr)
+	if err != nil {
+		timeoutMin = 10
+	}
+
 	if Version == "" {
 		Version = "dev"
 	}
@@ -291,7 +302,6 @@ func main() {
 
 	addEnvVars(ciProvider)
 
-	var err error
 	if spanType == "cmd" {
 		err = handleCmd()
 	} else if spanType == "step" {
@@ -299,7 +309,7 @@ func main() {
 		handleStep()
 	} else if spanType == "watch" {
 		if ciProvider == "CircleCI" {
-			err = pollCircleAPI(traceID, teamName, apihost, dataset)
+			err = pollCircleAPI(traceID, teamName, apihost, dataset, timeoutMin)
 		} else {
 			err = fmt.Errorf("watch command only valid on CircleCI")
 		}

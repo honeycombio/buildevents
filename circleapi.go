@@ -13,7 +13,7 @@ import (
 // until it succeeds or fails. It waits until this is the only job left running
 // then declares the workflow finished and records success or failure same as
 // the `handleBuild` function
-func pollCircleAPI(traceID, teamName, apiHost, dataset string) error {
+func pollCircleAPI(traceID, teamName, apiHost, dataset string, timeoutMin int) error {
 	workflowID, _ := os.LookupEnv("CIRCLE_WORKFLOW_ID")
 	thisJobName, _ := os.LookupEnv("CIRCLE_JOB")
 	client := &circleci.Client{}
@@ -22,6 +22,12 @@ func pollCircleAPI(traceID, teamName, apiHost, dataset string) error {
 	if err != nil {
 		return err
 	}
+
+	// default timeout is 10 minutes
+	if timeoutMin <= 0 {
+		timeoutMin = 10
+	}
+	timeoutDur := time.Duration(timeoutMin) * time.Minute
 
 	// ok, we have our jobs. Find ourself, watch the rest, see if any fail, wait
 	// till they're all done
@@ -87,7 +93,7 @@ func pollCircleAPI(traceID, teamName, apiHost, dataset string) error {
 	select {
 	case <-done:
 		// yay we're done
-	case <-time.After(10 * time.Minute):
+	case <-time.After(timeoutDur):
 		// uh oh we timed out
 		// TODO add reason = timeout or something.
 		failed = true
