@@ -52,7 +52,7 @@ func (e *APIError) Error() string {
 // Client is a CircleCI client
 // Its zero value is a usable client for examining public CircleCI repositories
 type Client struct {
-	BaseURLV1  *url.URL     // CircleCI API endpoint (defaults to DefaultEndpoint)
+	BaseURL    *url.URL     // CircleCI API endpoint (defaults to DefaultEndpoint)
 	BaseURLV2  *url.URL     // CircleCI API endpoint (defaults to DefaultEndpoint)
 	Token      string       // CircleCI API token (needed for private repositories and mutative actions)
 	HTTPClient *http.Client // HTTPClient to use for connecting to CircleCI (defaults to http.DefaultClient)
@@ -65,11 +65,11 @@ func (c *Client) baseURL(v apiVersion) *url.URL {
 	var bURL *url.URL
 	switch v {
 	case apiV1:
-		if c.BaseURLV1 == nil {
+		if c.BaseURL == nil {
 			bURL = defaultBaseURLV1
 			break
 		}
-		bURL = c.BaseURLV1
+		bURL = c.BaseURL
 	case apiV2:
 		if c.BaseURLV2 == nil {
 			bURL = defaultBaseURLV2

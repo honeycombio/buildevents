@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	circleci "github.com/maplebed/go-circleci"
+	circleci "github.com/jszwedko/go-circleci"
 )
 
 // pollCircleAPI will continue to poll the Circle API for this workflow's status
