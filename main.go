@@ -85,10 +85,10 @@ func handleBuild(traceID, teamName, apiHost, dataset string) {
 	// command line eg: buildevents build $TRAVIS_BUILD_ID $BUILD_START success
 
 	name := "build " + traceID
-	startTime := os.Args[3]
-	buildStatus := os.Args[4]
+	startTime := strings.TrimSpace(os.Args[3])
+	buildStatus := strings.TrimSpace(os.Args[4])
 
-	secondsSinceEpoch, _ := strconv.ParseInt(strings.TrimSpace(startTime), 10, 64)
+	secondsSinceEpoch, _ := strconv.ParseInt(startTime, 10, 64)
 
 	startUnix := time.Unix(secondsSinceEpoch, 0)
 	sendTraceRoot(name, traceID, buildStatus, startUnix, time.Since(startUnix))
@@ -124,10 +124,10 @@ func printTraceURL(traceID, teamName, apiHost, dataset string, startUnix int64) 
 func handleStep() error {
 	// command line eg: buildevents step $TRAVIS_BUILD_ID $STAGE_SPAN_ID $STAGE_START script
 
-	parentSpanID := os.Args[2]
-	stepSpanID := os.Args[3]
-	startTime := os.Args[4]
-	name := os.Args[5]
+	parentSpanID := strings.TrimSpace(os.Args[2])
+	stepSpanID := strings.TrimSpace(os.Args[3])
+	startTime := strings.TrimSpace(os.Args[4])
+	name := strings.TrimSpace(os.Args[5])
 
 	secondsSinceEpoch, _ := strconv.ParseInt(strings.TrimSpace(startTime), 10, 64)
 
@@ -146,8 +146,8 @@ func handleCmd() error {
 	// command line eg: buildevents cmd $TRAVIS_BUILD_ID $STAGE_SPAN_ID go-test -- go test github.com/honeycombio/hound/...
 
 	// TODO include in readme warning about really needing positional argumenst to be correct
-	parentSpanID := os.Args[3]
-	name := os.Args[4]
+	parentSpanID := strings.TrimSpace(os.Args[3])
+	name := strings.TrimSpace(os.Args[4])
 	// arg[5] is the "--"
 
 	spanBytes := make([]byte, 16)
@@ -260,7 +260,7 @@ func main() {
 	}
 
 	// respond to ./buildevents --version
-	if os.Args[1] == "--version" {
+	if strings.TrimSpace(os.Args[1]) == "--version" {
 		fmt.Println(Version)
 		os.Exit(0)
 	}
@@ -292,8 +292,8 @@ func main() {
 	}
 	libhoney.AddField("meta.version", Version)
 
-	spanType := os.Args[1]
-	traceID := os.Args[2]
+	spanType := strings.TrimSpace(os.Args[1])
+	traceID := strings.TrimSpace(os.Args[2])
 
 	if ciProvider != "" {
 		libhoney.AddField("ci_provider", ciProvider)
