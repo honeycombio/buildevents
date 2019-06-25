@@ -110,6 +110,9 @@ func pollCircleAPI(traceID, teamName, apiHost, dataset string, timeoutMin int) e
 	sendTraceRoot(name, traceID, buildStatus, startTime, time.Since(startTime))
 	printTraceURL(traceID, teamName, apiHost, dataset, startTime.Unix())
 
+	if failed {
+		return fmt.Errorf("failed build due to timing out polling after %d minutes", timeoutMin)
+	}
 	return nil
 }
 
