@@ -297,6 +297,7 @@ func main() {
 
 	if ciProvider != "" {
 		libhoney.AddField("ci_provider", ciProvider)
+		libhoney.UserAgentAddition += fmt.Sprintf(" (%s)", ciProvider)
 	}
 	libhoney.AddField("trace.trace_id", traceID)
 
