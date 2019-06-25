@@ -41,7 +41,7 @@ There are several other optional enviornment variables that will adjust the beha
 
 * `BUILDEVENT_DATASET` sets the Honeycomb dataset to use. The default is `buildevents`
 * `BUILDEVENT_APIHOST` sets the API target for sending Honeycomb traces.  Default is `https://api.honeycomb.io/`
-* `BUILDEVENT_CIPROVIDER` if set, a field in all spans named `ci_provider` will contain this value. If unset, `buildevents` will inspect the environment to try and detect Travis-CI and CircleCI (by looking for the environment variables `TRAVIS` and `CIRCLECI` respectively). If either Travis-CI or CircleCI are detected, `buildevents` will add a number of additional fields from the environment, such as the branch name, the repository, the build number, and so on. If detection fails and you are on Travis-CI or CircleCI, setting this to `Travis-CI` or `CircleCI` precisely will also trigger the automatic field additions.
+* `BUILDEVENT_CIPROVIDER` if set, a field in all spans named `ci_provider` will contain this value. If unset, `buildevents` will inspect the environment to try and detect Travis-CI, CircleCI, and GitLab-CI (by looking for the environment variables `TRAVIS`, `CIRCLECI`, and `GITLAB_CI` respectively). If either Travis-CI, CircleCI, or GitLab-CI are detected, `buildevents` will add a number of additional fields from the environment, such as the branch name, the repository, the build number, and so on. If detection fails and you are on Travis-CI, CircleCI, or GitLab-CI, setting this to `Travis-CI`, `CircleCI`, or `GitLab-CI` precisely will also trigger the automatic field additions.
 
 ## Trace Identifier
 
@@ -51,6 +51,7 @@ The Build ID may already be available in the environment for your build:
 * Travis-CI: `TRAVIS_BUILD_ID`
 * CircleCI: `CIRCLE_WORKFLOW_ID` (if you're using workflows)
 * CircleCI: `CIRCLE_BUILD_NUM` (the build number for this job if you're not using workflows)
+* GitLab-CI: `CI_PIPELINE_ID`
 
 # Use
 
@@ -295,5 +296,3 @@ arguments for the `cmd` mode:
 1. `step_id` buildevents expects a build to contain steps, and each step to have commands. The step ID is used to help construct this tree
 1. `name` the name for this command, used in the Honeycomb UI
 1. `--` double hyphen indicates the rest of the line will be the command to run
-
-

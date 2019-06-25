@@ -208,6 +208,16 @@ func addEnvVars(ciProvider string) {
 			"TRAVIS_PULL_REQUEST_SLUG":   "pr_repo",
 			"TRAVIS_REPO_SLUG":           "repo",
 		}
+	case "gitlab-ci", "gitlabci", "gitlab":
+		envVars = map[string]string{
+			"CI_COMMIT_REF_NAME":                   "branch",
+			"CI_PIPELINE_ID":                       "build_num",
+			"CI_PIPELINE_URL":                      "build_url",
+			"CI_MERGE_REQUEST_ID":                  "pr_number",
+			"CI_MERGE_REQUEST_SOURCE_BRANCH_NAME":  "pr_branch",
+			"CI_MERGE_REQUEST_SOURCE_PROJECT_PATH": "pr_repo",
+			"CI_PROJECT_URL":                       "repo",
+		}
 	}
 	for envVar, fieldName := range envVars {
 		if val, ok := os.LookupEnv(envVar); ok {
@@ -236,6 +246,8 @@ func main() {
 			ciProvider = "Travis-CI"
 		} else if _, present := os.LookupEnv("CIRCLECI"); present {
 			ciProvider = "CircleCI"
+		} else if _, present := os.LookupEnv("GITLAB_CI"); present {
+			ciProvider = "GitLab-CI"
 		}
 	}
 
