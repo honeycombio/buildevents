@@ -16,7 +16,13 @@ import (
 func pollCircleAPI(traceID, teamName, apiHost, dataset string, timeoutMin int) error {
 	workflowID, _ := os.LookupEnv("CIRCLE_WORKFLOW_ID")
 	thisJobName, _ := os.LookupEnv("CIRCLE_JOB")
-	client := &circleci.Client{}
+
+	// TODO decide whether we can exist without token set. it's not required for
+	// public repos; it is for private repos.
+	token, _ := os.LookupEnv("BUILDEVENT_CIRCLE_API_TOKEN")
+	client := &circleci.Client{
+		Token: token,
+	}
 
 	wfJobs, err := getJobs(client, workflowID)
 	if err != nil {
