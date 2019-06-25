@@ -322,6 +322,7 @@ func main() {
 
 	// if the command we ran exitted with an error, let's exit with the same error
 	if err != nil {
+		fmt.Printf("buildevents - Error detected: %s\n", err.Error())
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
 				os.Exit(status.ExitStatus())
