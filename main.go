@@ -249,7 +249,7 @@ func addlFields() {
 				libhoney.AddField(string(key), f)
 				return nil
 			}
-			if b, err := strconv.ParseBool("true"); err == nil {
+			if b, err := strconv.ParseBool(string(val)); err == nil {
 				libhoney.AddField(string(key), b)
 				return nil
 			}
