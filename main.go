@@ -341,6 +341,7 @@ func main() {
 	libhoney.AddField("trace.trace_id", traceID)
 
 	addEnvVars(ciProvider)
+	addlFields()
 
 	if spanType == "cmd" {
 		err = handleCmd()
