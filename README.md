@@ -51,7 +51,8 @@ There are several other optional enviornment variables that will adjust the beha
 
 * `BUILDEVENT_DATASET` sets the Honeycomb dataset to use. The default is `buildevents`
 * `BUILDEVENT_APIHOST` sets the API target for sending Honeycomb traces.  Default is `https://api.honeycomb.io/`
-* `BUILDEVENT_CIPROVIDER` if set, a field in all spans named `ci_provider` will contain this value. If unset, `buildevents` will inspect the environment to try and detect Travis-CI and CircleCI (by looking for the environment variables `TRAVIS` and `CIRCLECI` respectively). If either Travis-CI or CircleCI are detected, `buildevents` will add a number of additional fields from the environment, such as the branch name, the repository, the build number, and so on. If detection fails and you are on Travis-CI or CircleCI, setting this to `Travis-CI` or `CircleCI` precisely will also trigger the automatic field additions.
+* `BUILDEVENT_CIPROVIDER` if set, a field in all spans named `ci_provider` will contain this value. If unset, `buildevents` will inspect the environment to try and detect Travis-CI, CircleCI, and GitLab-CI (by looking for the environment variables `TRAVIS`, `CIRCLECI`, and `GITLAB_CI` respectively). If either Travis-CI, CircleCI, or GitLab-CI are detected, `buildevents` will add a number of additional fields from the environment, such as the branch name, the repository, the build number, and so on. If detection fails and you are on Travis-CI, CircleCI, or GitLab-CI, setting this to `Travis-CI`, `CircleCI`, or `GitLab-CI` precisely will also trigger the automatic field additions.
+* `BUILDEVENT_FILE` if set, is used as the path of a text file holding arbitrary key=val pairs (multi-line-capable, logfmt style) that will be added to the Honeycomb event.
 
 ## Trace Identifier
 
@@ -61,6 +62,7 @@ The Build ID may already be available in the environment for your build:
 * Travis-CI: `TRAVIS_BUILD_ID`
 * CircleCI: `CIRCLE_WORKFLOW_ID` (if you're using workflows)
 * CircleCI: `CIRCLE_BUILD_NUM` (the build number for this job if you're not using workflows)
+* GitLab-CI: `CI_PIPELINE_ID`
 
 # Use
 
@@ -77,13 +79,13 @@ Though listed first, running `buildevents` in `build` mode should actually be th
 
 The output of buildevents in `build` will be a link to the trace within Honeycomb. Take this URL and use it in the notifications your CI system emits to easily jump to the Honeycomb trace for a build. If the API Key used in this run is not valid, no output will be emitted.
 
+Note that CircleCI uses an alternate method of creating the root span, so the `build` command should not be used. Use the `watch` command instead.
+
 For the `build` step, you must first record the time the build started.
 * Travis-CI: the `env` section of the config file establishes some global variables in the environment. This is run before anything else, so gets a good start time.
-* CircleCI: make a `setup` job that is `require`d by what would otherwise be the beginning of your build. Record the start time during that job. You will have to persist this value to a workspace for it to be available to other jobs in the workflow.
 
 The actual invocation of `buildevents build` should be as close to the last thing that the build does as possible.
 * Travis-CI: the end of the `after_failure` and `after_success` steps
-* CircleCI: the last job in the workflow
 
 Travis-CI example:
 ```yaml
@@ -101,32 +103,23 @@ after_success:
   - echo "Honeycomb Trace: $traceURL"
 ```
 
-CircleCI example:
+## watch
+
+CirclecI requires use of the CircleCI API to detect when workflows start and stop. There is no facility to always run a job after all others, so what works using the Travis-CI `after_failure` will not work on CircleCI. However, the CircleCI API exposes when the current workflow has started, and can be used intsead.
+
+The `watch` command polls the CircleCI API and waits until all jobs have finished (either succeeded, failed, or are blocked). It then reports the final status of the build with the appropriate timers.  `watch` should be invoked in a job all on its own, dependent on only the `setup` job, with only the Trace ID to use. After some time, `watch` will timeout waiting for the build to finish and fail. The timeout default is 10 minutes and can be overridden by setting `BUILDEVENT_TIMEOUT`
+
+For public github repositories and public CircleCI builds, it is ok to call the CircleCI API with no authentication token. However, to use `watch` with a private github repo, you will need to provide a CircleCI API token to `buildevents` via the `BUILDEVENT_CIRCLE_API_TOKEN` environment variable. You can get a personal API token from https://circleci.com/account/api. For more detail on tokens, please see the [CircleCI API Tokens documentation](https://circleci.com/docs/2.0/managing-api-tokens/)
+
+The `watch` command will emit a link to the finished trace to the job output in Honeycomb when the build is complete.
+
 ```yaml
 jobs:
-  setup:
+  send_trace:
     steps:
-      - run: |
-          mkdir -p ~/be
-          date +%s > ~/be/build_start
-      - run: |
-          curl -L -o ~/be/buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents
-          chmod 755 ~/be/buildevents
-      - persist_to_workspace:
-          root: ~/be
-          paths:
-            - build_start
-            - buildevents
-  final:
-    steps:
-      - attach_workspace:
-          at: buildevents
-      - run: |
-          BUILD_START=$(cat buildevents/build_start)
-          traceURL=$(~/be/buildevents build $CIRCLE_WORKFLOW_ID $BUILD_START success)
-          echo "Honeycomb Trace: $traceURL"
-
+      - run: buildevents watch $CIRCLE_WORKFLOW_ID
 ```
+
 ## step
 
 The `step` mode is the outer wrapper that joins a collection of individual `cmd`s together in to a block. Like the `build` command, it should be run at the end of the collection of `cmd`s and needs a start time collected at the beginning. In addition to the trace identifier, it needs a step identifier that will also be passed to all the `cmd`s that are part of this step in order to tie them together in to a block. Because the step identifier must be available to all commands, both it and the start time should be generated at the beginning of the step and recorded. The step identifier must be unique within the trace (but does not need to be globally unique). To avoid being distracting, we use a hash of the step name as the identifier.
@@ -251,6 +244,11 @@ jobs:
           paths:
             - build_start
             - bin/buildevents
+  send_trace:
+    steps:
+      - attach_workspace:
+          at: buildevents
+      - run: buildevents watch $CIRCLE_WORKFLOW_ID
   test:
     steps:
       - with_job_span:
@@ -264,28 +262,20 @@ jobs:
             - run: mkdir artifacts
             - run: buildevents cmd $CIRCLE_WORKFLOW_ID $STEP_SPAN_ID build -- go install ./...
             - run: # publish your build artifacts
-  final:
-    steps:
-      - attach_workspace:
-          at: buildevents
-      - run: |
-          BUILD_START=$(cat buildevents/build_start)
-          buildevents build $CIRCLE_WORKFLOW_ID $BUILD_START success
 
 workflows:
   test-and-build:
     jobs:
       - setup
+      - send_trace:
+          requires:
+            - setup
       - test:
           requires:
             - setup
       - build:
           requires:
             - test
-      - final
-          requires:
-            - test
-            - build
 ```
 
 # Positional argument reference
@@ -303,6 +293,9 @@ arguments for the `build` mode:
 1. `start_time` used to calculate the total duration of the build
 1. `status` should be `success` or `failure` and indicates whether the overall build succeeeded or failed
 
+arguments for the `watch` mode:
+1. `build_id` this is used as the trace ID
+
 arguments for the `step` mode:
 1. `build_id` this is used as both the trace ID and to generate a URL to link back to the build
 1. `step_id` buildevents expects a build to contain steps, and each step to have commands. The step ID is used to help construct this tree
@@ -314,5 +307,3 @@ arguments for the `cmd` mode:
 1. `step_id` buildevents expects a build to contain steps, and each step to have commands. The step ID is used to help construct this tree
 1. `name` the name for this command, used in the Honeycomb UI
 1. `--` double hyphen indicates the rest of the line will be the command to run
-
-

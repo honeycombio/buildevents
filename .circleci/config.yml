@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  buildevents: honeycombio/buildevents@0.0.2
+  buildevents: honeycombio/buildevents@0.0.3
 
 executors:
   linuxgo:
@@ -70,6 +70,8 @@ jobs:
                 root: artifacts
                 paths:
                   - buildevents.tar
+            - store_artifacts:
+                path: artifacts/
   publish:
     docker:
       - image: cibuilds/github:0.12.1

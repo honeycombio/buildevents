@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"os/exec"
@@ -13,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/kr/logfmt"
 
 	libhoney "github.com/honeycombio/libhoney-go"
 	"github.com/honeycombio/libhoney-go/transmission"
@@ -85,14 +88,25 @@ func handleBuild(traceID, teamName, apiHost, dataset string) {
 	// command line eg: buildevents build $TRAVIS_BUILD_ID $BUILD_START success
 
 	name := "build " + traceID
-	startTime := os.Args[3]
-	buildStatus := os.Args[4]
+	startTime := strings.TrimSpace(os.Args[3])
+	buildStatus := strings.TrimSpace(os.Args[4])
 
 	secondsSinceEpoch, _ := strconv.ParseInt(startTime, 10, 64)
 
 	startUnix := time.Unix(secondsSinceEpoch, 0)
 	sendTraceRoot(name, traceID, buildStatus, startUnix, time.Since(startUnix))
 
+	// spit out the URL to the trace
+	if teamName == "" {
+		// no team name means the API key didn't resolve, so we have no trace
+		fmt.Println("skipping printing out the trace because the Honeycomb API key did not resolve to a team name")
+		return
+	}
+	printTraceURL(traceID, teamName, apiHost, dataset, startUnix.Unix())
+
+}
+
+func printTraceURL(traceID, teamName, apiHost, dataset string, startUnix int64) {
 	// spit out the URL to the trace
 	if teamName == "" {
 		// no team name means the API key didn't resolve, so we have no trace
@@ -105,22 +119,27 @@ func handleBuild(traceID, teamName, apiHost, dataset string) {
 	}
 	u.Path = path.Join(teamName, "datasets", dataset, "trace")
 	endTime := time.Now().Add(10 * time.Minute).Unix()
-	traceURL := fmt.Sprintf("%s?trace_id=%s&trace_start_ts=%s&trace_end_ts=%d",
-		u.String(), traceID, startTime, endTime)
+	traceURL := fmt.Sprintf("%s?trace_id=%s&trace_start_ts=%d&trace_end_ts=%d",
+		u.String(), traceID, startUnix, endTime)
 	fmt.Println(traceURL)
 }
 
 func handleStep() error {
 	// command line eg: buildevents step $TRAVIS_BUILD_ID $STAGE_SPAN_ID $STAGE_START script
 
-	parentSpanID := os.Args[2]
-	stepSpanID := os.Args[3]
-	startTime := os.Args[4]
-	name := os.Args[5]
+	parentSpanID := strings.TrimSpace(os.Args[2])
+	stepSpanID := strings.TrimSpace(os.Args[3])
+	startTime := strings.TrimSpace(os.Args[4])
+	name := strings.TrimSpace(os.Args[5])
 
-	secondsSinceEpoch, _ := strconv.ParseInt(startTime, 10, 64)
+	secondsSinceEpoch, _ := strconv.ParseInt(strings.TrimSpace(startTime), 10, 64)
 
 	startUnix := time.Unix(secondsSinceEpoch, 0)
+
+	if startUnix == time.Unix(0, 0) {
+		fmt.Printf("couldn't parse startTime of %s\n", startTime)
+		startUnix = time.Now()
+	}
 
 	ev := getTraceSpanEvent(parentSpanID, stepSpanID, "step", name, startUnix, time.Since(startUnix))
 	return ev.Send()
@@ -130,8 +149,8 @@ func handleCmd() error {
 	// command line eg: buildevents cmd $TRAVIS_BUILD_ID $STAGE_SPAN_ID go-test -- go test github.com/honeycombio/hound/...
 
 	// TODO include in readme warning about really needing positional argumenst to be correct
-	parentSpanID := os.Args[3]
-	name := os.Args[4]
+	parentSpanID := strings.TrimSpace(os.Args[3])
+	name := strings.TrimSpace(os.Args[4])
 	// arg[5] is the "--"
 
 	spanBytes := make([]byte, 16)
@@ -192,11 +211,54 @@ func addEnvVars(ciProvider string) {
 			"TRAVIS_PULL_REQUEST_SLUG":   "pr_repo",
 			"TRAVIS_REPO_SLUG":           "repo",
 		}
+	case "gitlab-ci", "gitlabci", "gitlab":
+		envVars = map[string]string{
+			"CI_COMMIT_REF_NAME":                   "branch",
+			"CI_PIPELINE_ID":                       "build_num",
+			"CI_PIPELINE_URL":                      "build_url",
+			"CI_MERGE_REQUEST_ID":                  "pr_number",
+			"CI_MERGE_REQUEST_SOURCE_BRANCH_NAME":  "pr_branch",
+			"CI_MERGE_REQUEST_SOURCE_PROJECT_PATH": "pr_repo",
+			"CI_PROJECT_URL":                       "repo",
+		}
 	}
 	for envVar, fieldName := range envVars {
 		if val, ok := os.LookupEnv(envVar); ok {
 			libhoney.AddField(fieldName, val)
 		}
+	}
+}
+
+// addlFields adds an arbitrary set of fields provided by the end user
+func addlFields() {
+	locn := os.Getenv("BUILDEVENT_FILE")
+	if locn == "" {
+		return
+	}
+
+	data, err := ioutil.ReadFile(locn)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "unable to read %q: %v\n", locn, err)
+		return
+	}
+
+	err = logfmt.Unmarshal(
+		data,
+		logfmt.HandlerFunc(func(key, val []byte) error {
+			if f, err := strconv.ParseFloat(string(val), 64); err == nil {
+				libhoney.AddField(string(key), f)
+				return nil
+			}
+			if b, err := strconv.ParseBool(string(val)); err == nil {
+				libhoney.AddField(string(key), b)
+				return nil
+			}
+			libhoney.AddField(string(key), string(val))
+			return nil
+		}),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "problems loading from %q: %v\n", locn, err)
 	}
 }
 
@@ -212,12 +274,16 @@ func main() {
 	apikey, _ := os.LookupEnv("BUILDEVENT_APIKEY")
 	dataset, _ := os.LookupEnv("BUILDEVENT_DATASET")
 	apihost, _ := os.LookupEnv("BUILDEVENT_APIHOST")
+	// timeout is only for polling the circleci api
+	timeoutStr, _ := os.LookupEnv("BUILDEVENT_TIMEOUT")
 	ciProvider, _ := os.LookupEnv("BUILDEVENT_CIPROVIDER")
 	if ciProvider == "" {
 		if _, present := os.LookupEnv("TRAVIS"); present {
 			ciProvider = "Travis-CI"
 		} else if _, present := os.LookupEnv("CIRCLECI"); present {
 			ciProvider = "CircleCI"
+		} else if _, present := os.LookupEnv("GITLAB_CI"); present {
+			ciProvider = "GitLab-CI"
 		}
 	}
 
@@ -228,17 +294,27 @@ func main() {
 	if apihost == "" {
 		apihost = "https://api.honeycomb.io"
 	}
+	// use timeout default of 10min
+	if timeoutStr == "" {
+		timeoutStr = "10"
+	}
+	timeoutMin, err := strconv.Atoi(timeoutStr)
+	if err != nil {
+		timeoutMin = 10
+	}
+
 	if Version == "" {
 		Version = "dev"
 	}
 
 	// respond to ./buildevents --version
-	if os.Args[1] == "--version" {
+	if strings.TrimSpace(os.Args[1]) == "--version" {
 		fmt.Println(Version)
 		os.Exit(0)
 	}
 
-	if len(os.Args) < 4 {
+	// every command needs at least two parameters - the command to run and the trace ID
+	if len(os.Args) < 2 {
 		usage()
 		os.Exit(1)
 	}
@@ -264,22 +340,29 @@ func main() {
 	}
 	libhoney.AddField("meta.version", Version)
 
-	spanType := os.Args[1]
-	traceID := os.Args[2]
+	spanType := strings.TrimSpace(os.Args[1])
+	traceID := strings.TrimSpace(os.Args[2])
 
 	if ciProvider != "" {
 		libhoney.AddField("ci_provider", ciProvider)
+		libhoney.UserAgentAddition += fmt.Sprintf(" (%s)", ciProvider)
 	}
 	libhoney.AddField("trace.trace_id", traceID)
 
 	addEnvVars(ciProvider)
+	addlFields()
 
-	var err error
 	if spanType == "cmd" {
 		err = handleCmd()
 	} else if spanType == "step" {
 		// there can be no error here
 		handleStep()
+	} else if spanType == "watch" {
+		if ciProvider == "CircleCI" {
+			err = pollCircleAPI(traceID, teamName, apihost, dataset, timeoutMin)
+		} else {
+			err = fmt.Errorf("watch command only valid on CircleCI")
+		}
 	} else {
 		// there can be no error here
 		handleBuild(traceID, teamName, apihost, dataset)
@@ -289,6 +372,7 @@ func main() {
 
 	// if the command we ran exitted with an error, let's exit with the same error
 	if err != nil {
+		fmt.Printf("buildevents - Error detected: %s\n", err.Error())
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
 				os.Exit(status.ExitStatus())
