@@ -14,6 +14,8 @@ github.com/facebookgo/subset v0.0.0-20150612182917-8dac2c3c4870 h1:E2s37DuLxFhQD
 github.com/facebookgo/subset v0.0.0-20150612182917-8dac2c3c4870/go.mod h1:5tD+neXqOorC30/tWg0LCSkrqj/AR6gu8yY8/fpw1q0=
 github.com/honeycombio/libhoney-go v1.10.0 h1:eZ5VauogxgWlw26CDkeAmEK/CuhsIVlLgGuKtHdp2c8=
 github.com/honeycombio/libhoney-go v1.10.0/go.mod h1:jdLxh51fcBTy6XIpx1efuJmHePs2xUfVkw25lr+hsmg=
+github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 h1:T+h1c/A9Gawja4Y9mFVWj2vyii2bbUNDw3kt9VxK2EY=
+github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
 github.com/maplebed/go-circleci v0.0.0-20190624145132-b886dbac393 h1:fGOOz/B38EXjZgOLiGAZxg48sqGInDMuysDi3aKSThQ=
 github.com/maplebed/go-circleci v0.0.0-20190624145132-b886dbac393/go.mod h1:OW/yiyLmpZqdbYUHRuFS83n1TpphzLe6sDFvOa8xX4w=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

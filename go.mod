@@ -9,6 +9,7 @@ require (
 	github.com/facebookgo/subset v0.0.0-20150612182917-8dac2c3c4870 // indirect
 	github.com/honeycombio/libhoney-go v1.10.0
 	github.com/jszwedko/go-circleci v0.2.0
+	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
 	github.com/stretchr/testify v1.3.0 // indirect
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 )
