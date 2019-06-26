@@ -23,9 +23,19 @@ If you have a working go environment in your build, the easiest way to install `
 go get github.com/honeycombio/buildevents/
 ```
 
-There is also a built binary (for linux) hosted on Github and available under the [releases](https://github.com/honeycombio/buildevents/releases) tab. The following two commands will down load and make executable the github-hosted binary.
+There are also built binaries for linux and macOS hosted on Github and available under the [releases](https://github.com/honeycombio/buildevents/releases) tab. The following two commands will down load and make executable the github-hosted binary.
+
+**linux:**
+
 ```
-curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents
+curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-linux-amd64
+chmod 755 buildevents
+```
+
+**macOS:**
+
+```
+curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-darwin-amd64
 chmod 755 buildevents
 ```
 
