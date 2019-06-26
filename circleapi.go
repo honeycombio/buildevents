@@ -107,6 +107,9 @@ func pollCircleAPI(traceID, teamName, apiHost, dataset string, timeoutMin int) e
 
 	// if one of our jobs has failed, mark the build as failed. Otherwise success!
 	wf, err := client.GetWorkflowV2(workflowID)
+	if err != nil {
+		return err
+	}
 	startTime := wf.CreatedAt
 	buildStatus := "success"
 	if failed {
