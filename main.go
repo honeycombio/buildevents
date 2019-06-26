@@ -231,7 +231,7 @@ func addEnvVars(ciProvider string) {
 
 // addlFields adds an arbitrary set of fields provided by the end user
 func addlFields() {
-	locn := os.Getenv("BUILDEVENTS_FILE")
+	locn := os.Getenv("BUILDEVENT_FILE")
 	if locn == "" {
 		return
 	}
