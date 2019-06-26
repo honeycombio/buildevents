@@ -9,5 +9,7 @@ github.com/honeycombio/libhoney-go
 github.com/honeycombio/libhoney-go/transmission
 # github.com/jszwedko/go-circleci v0.2.0 => github.com/maplebed/go-circleci v0.0.0-20190624145132-b886dbac393
 github.com/jszwedko/go-circleci
+# github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
+github.com/kr/logfmt
 # gopkg.in/alexcesaro/statsd.v2 v2.0.0
 gopkg.in/alexcesaro/statsd.v2

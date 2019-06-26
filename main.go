@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"os/exec"
@@ -13,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/kr/logfmt"
 
 	libhoney "github.com/honeycombio/libhoney-go"
 	"github.com/honeycombio/libhoney-go/transmission"
@@ -223,6 +226,31 @@ func addEnvVars(ciProvider string) {
 		if val, ok := os.LookupEnv(envVar); ok {
 			libhoney.AddField(fieldName, val)
 		}
+	}
+}
+
+// addlFields adds an arbitrary set of fields provided by the end user
+func addlFields() {
+	locn := os.Getenv("BUILDEVENTS_FILE")
+	if locn == "" {
+		return
+	}
+
+	data, err := ioutil.ReadFile(locn)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "unable to read %q: %v\n", locn, err)
+		return
+	}
+
+	err = logfmt.Unmarshal(
+		data,
+		logfmt.HandlerFunc(func(key, val []byte) error {
+			libhoney.AddField(string(key), string(val))
+			return nil
+		}),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "problems loading from %q: %v\n", locn, err)
 	}
 }
 
