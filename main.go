@@ -245,6 +245,14 @@ func addlFields() {
 	err = logfmt.Unmarshal(
 		data,
 		logfmt.HandlerFunc(func(key, val []byte) error {
+			if f, err := strconv.ParseFloat(string(val), 64); err == nil {
+				libhoney.AddField(string(key), f)
+				return nil
+			}
+			if b, err := strconv.ParseBool("true"); err == nil {
+				libhoney.AddField(string(key), b)
+				return nil
+			}
 			libhoney.AddField(string(key), string(val))
 			return nil
 		}),
