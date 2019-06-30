@@ -7,9 +7,15 @@ github.com/facebookgo/muster
 # github.com/honeycombio/libhoney-go v1.10.0
 github.com/honeycombio/libhoney-go
 github.com/honeycombio/libhoney-go/transmission
+# github.com/inconshreveable/mousetrap v1.0.0
+github.com/inconshreveable/mousetrap
 # github.com/jszwedko/go-circleci v0.2.0 => github.com/maplebed/go-circleci v0.0.0-20190624145132-b886dbac393
 github.com/jszwedko/go-circleci
 # github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
 github.com/kr/logfmt
+# github.com/spf13/cobra v0.0.5
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.3
+github.com/spf13/pflag
 # gopkg.in/alexcesaro/statsd.v2 v2.0.0
 gopkg.in/alexcesaro/statsd.v2
