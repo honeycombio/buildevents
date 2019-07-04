@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	circleci "github.com/jszwedko/go-circleci"
@@ -39,7 +40,7 @@ build with the appropriate timers.`,
 			},
 		),
 		Run: func(cmd *cobra.Command, args []string) {
-			traceID := args[0]
+			traceID := strings.TrimSpace(args[0])
 
 			ev := createEvent(cfg, *ciProvider, traceID)
 			defer ev.Send()
