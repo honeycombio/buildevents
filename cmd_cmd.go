@@ -36,9 +36,9 @@ will be launched via "bash -c" using "exec".`,
 		),
 		DisableFlagsInUseLine: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			traceID := args[0]
-			stepID := args[1]
-			name := args[2]
+			traceID := strings.TrimSpace(args[0])
+			stepID := strings.TrimSpace(args[1])
+			name := strings.TrimSpace(args[2])
 
 			var quoted []string
 			for _, s := range args[3:] {

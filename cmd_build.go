@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -22,9 +23,9 @@ a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 		Args:                  argOptions(2, "success", "failure"),
 		DisableFlagsInUseLine: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			traceID := args[0]
-			startTime := parseUnix(args[1])
-			outcome := args[2]
+			traceID := strings.TrimSpace(args[0])
+			startTime := parseUnix(strings.TrimSpace(args[1]))
+			outcome := strings.TrimSpace(args[2])
 
 			ev := createEvent(cfg, *ciProvider, traceID)
 			defer ev.Send()
@@ -58,14 +59,14 @@ func argOptions(pos int, opts ...string) cobra.PositionalArgs {
 		cobra.MinimumNArgs(pos+1),
 		func(cmd *cobra.Command, args []string) error {
 			for _, opt := range opts {
-				if args[pos] == opt {
+				if strings.TrimSpace(args[pos]) == opt {
 					return nil
 				}
 			}
 			if len(opts) == 1 {
-				return fmt.Errorf("argument at index %d (%q) must be %q", pos, args[pos], opts[0])
+				return fmt.Errorf("argument at index %d (%q) must be %q", pos, strings.TrimSpace(args[pos]), opts[0])
 			}
-			return fmt.Errorf("argument at index %d (%q) must be one of %v", pos, args[pos], opts)
+			return fmt.Errorf("argument at index %d (%q) must be one of %v", pos, strings.TrimSpace(args[pos]), opts)
 		},
 	)
 }

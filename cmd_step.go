@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -20,10 +21,10 @@ most closely maps to a single job. It should be run at the end of the step.`,
 		Args:                  cobra.ExactArgs(4),
 		DisableFlagsInUseLine: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			traceID := args[0]
-			stepID := args[1]
-			startTime := parseUnix(args[2])
-			name := args[3]
+			traceID := strings.TrimSpace(args[0])
+			stepID := strings.TrimSpace(args[1])
+			startTime := parseUnix(strings.TrimSpace(args[2]))
+			name := strings.TrimSpace(args[3])
 
 			ev := createEvent(cfg, *ciProvider, traceID)
 			defer ev.Send()
