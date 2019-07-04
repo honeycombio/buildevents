@@ -138,8 +138,8 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 
 	go func() {
 		defer close(done)
-		tk := time.NewTicker(5 * time.Second)
-		for range <-tk.C {
+		tk := time.NewTicker(5 * time.Second).C
+		for range tk {
 			// check for timeout or pause before the next iteration
 			select {
 			case <-ctx.Done():
