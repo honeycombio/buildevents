@@ -214,6 +214,8 @@ func evalWorkflow(client *circleci.Client, wfID string, jobName string) (finishe
 			// it's waiting on a running job or
 			// it's not configured to run this build (because of a tag or something)
 			continue
+		case "queued":
+			return false, failed, nil
 		case "failed":
 			failed = true
 			continue
