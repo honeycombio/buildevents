@@ -138,7 +138,16 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 
 	go func() {
 		defer close(done)
-		for {
+		tk := time.NewTicker(5 * time.Second)
+		for range <-tk.C {
+			// check for timeout or pause before the next iteration
+			select {
+			case <-ctx.Done():
+				fmt.Fprintf(os.Stderr, "Timeout reached waiting for the workflow to finish")
+				return
+			default:
+			}
+
 			finished, failed, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
 			if finished {
 				if checksLeft <= 0 {
@@ -172,14 +181,6 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 			// finished.
 			passed = false
 			checksLeft = numChecks
-
-			// check for timeout or pause before the next iteration
-			select {
-			case <-ctx.Done():
-				fmt.Fprintf(os.Stderr, "Timeout reached waiting for the workflow to finish")
-				return
-			case <-time.After(5 * time.Second):
-			}
 
 		}
 	}()
