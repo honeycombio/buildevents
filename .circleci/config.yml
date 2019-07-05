@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  buildevents: honeycombio/buildevents@0.0.3
+  buildevents: honeycombio/buildevents@0.2.0
 
 executors:
   linuxgo:
@@ -38,6 +38,11 @@ jobs:
     executor: linuxgo
     steps:
       - buildevents/start_trace
+  watch:
+    executor: linuxgo
+    steps:
+      - buildevents/watch_build_and_finish
+
   test:
     executor: linuxgo
     steps:
@@ -76,27 +81,30 @@ jobs:
     docker:
       - image: cibuilds/github:0.12.1
     steps:
-      - attach_workspace:
-          at: artifacts
-      - run:
-          name: "Publish Release on GitHub"
-          command: |
-            echo "about to publish to tag ${CIRCLE_TAG}"
-            tar -xvf artifacts/buildevents.tar
-            ls -l *
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-386
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-amd64
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-darwin-amd64
-  final:
-    executor: linuxgo
-    steps:
-      - buildevents/finish_trace:
-          result: success
+      - buildevents/with_job_span:
+          steps:
+            - attach_workspace:
+                at: artifacts
+            - run:
+                name: "Publish Release on GitHub"
+                command: |
+                  echo "about to publish to tag ${CIRCLE_TAG}"
+                  tar -xvf artifacts/buildevents.tar
+                  ls -l *
+                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-386
+                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-amd64
+                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-darwin-amd64
 
 workflows:
   build:
     jobs:
       - setup:
+          filters:
+            tags:
+              only: /.*/
+      - watch:
+          requires:
+            - setup
           filters:
             tags:
               only: /.*/
@@ -120,10 +128,3 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - final:
-          requires:
-            - build
-          filters:
-            tags:
-              only: /.*/
-
