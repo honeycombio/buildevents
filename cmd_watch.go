@@ -201,7 +201,7 @@ func evalWorkflow(client *circleci.Client, wfID string, jobName string) (finishe
 		fmt.Printf("error polling: %s\n", err.Error())
 		return true, true, err
 	}
-	fmt.Printf(summarizeJobList(wfJobs) + "\n")
+	fmt.Println(summarizeJobList(wfJobs))
 
 	for _, job := range wfJobs {
 		// always count ourself as finished so we don't wait for ourself
