@@ -143,7 +143,7 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 			// check for timeout or pause before the next iteration
 			select {
 			case <-ctx.Done():
-				fmt.Fprintf(os.Stderr, "Timeout reached waiting for the workflow to finish")
+				fmt.Fprintf(os.Stderr, "Timeout reached waiting for the workflow to finish\n")
 				return
 			default:
 			}
