@@ -173,7 +173,7 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 					fmt.Printf("Build failed!\n")
 					return
 				}
-				// yay loks like maybe we're done?
+				// yay looks like maybe we're done?
 				fmt.Printf("Build appears finished; checking %d more times to make sure.\n", checksLeft)
 				continue
 			}
