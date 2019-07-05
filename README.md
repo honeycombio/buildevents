@@ -109,7 +109,7 @@ CirclecI requires use of the CircleCI API to detect when workflows start and sto
 
 The `watch` command polls the CircleCI API and waits until all jobs have finished (either succeeded, failed, or are blocked). It then reports the final status of the build with the appropriate timers.  `watch` should be invoked in a job all on its own, dependent on only the `setup` job, with only the Trace ID to use. After some time, `watch` will timeout waiting for the build to finish and fail. The timeout default is 10 minutes and can be overridden by setting `BUILDEVENT_TIMEOUT`
 
-Using the `watch` requires a personal (not project) CircleCI API token. You can provide this token to `buildevents` via the `BUILDEVENT_CIRCLE_API_TOKEN` environment variable. You can get a personal API token from https://circleci.com/account/api. For more detail on tokens, please see the [CircleCI API Tokens documentation](https://circleci.com/docs/2.0/managing-api-tokens/)
+Using the `watch` command requires a personal (not project) CircleCI API token. You can provide this token to `buildevents` via the `BUILDEVENT_CIRCLE_API_TOKEN` environment variable. You can get a personal API token from https://circleci.com/account/api. For more detail on tokens, please see the [CircleCI API Tokens documentation](https://circleci.com/docs/2.0/managing-api-tokens/)
 
 The `watch` command will emit a link to the finished trace to the job output in Honeycomb when the build is complete.
 
