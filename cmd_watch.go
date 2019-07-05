@@ -150,6 +150,7 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 
 			finished, failed, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
 			if finished {
+				checksLeft--
 				if checksLeft <= 0 {
 					// we're done checking.
 					passed = !failed
@@ -160,7 +161,6 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 					}
 					return
 				}
-				checksLeft--
 				if err != nil {
 					// we previously successfully queried for the workflow; this is likely a
 					// transient error
