@@ -134,7 +134,7 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 	// In that case there are no jobs running and some jobs blocked that could
 	// still run. If we think the build has passed and finished, let's give it a
 	// buffer to spin up new jobs before really considering it done.
-	checksLeft := numChecks
+	checksLeft := numChecks + 1 // +1 because we decrement at the beginning of the loop
 
 	go func() {
 		defer close(done)
@@ -143,6 +143,7 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 			// check for timeout or pause before the next iteration
 			select {
 			case <-ctx.Done():
+				// TODO add the fact that it timed out to the trace to say why it failed
 				fmt.Fprintf(os.Stderr, "Timeout reached waiting for the workflow to finish\n")
 				return
 			default:
