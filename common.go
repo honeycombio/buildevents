@@ -75,6 +75,15 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"CI_MERGE_REQUEST_SOURCE_PROJECT_PATH": "pr_repo",
 			"CI_PROJECT_URL":                       "repo",
 		}
+	case "buildkite", "buildkiteci", "build-kite":
+		envVars = map[string]string{
+			"BUILDKITE_BRANCH":            "branch",
+			"BUILDKITE_BUILD_NUMBER":      "build_num",
+			"BUILDKITE_BUILD_URL":         "build_url",
+			"BUILDKITE_PULL_REQUEST":      "pr_number",
+			"BUILDKITE_PULL_REQUEST_REPO": "pr_repo",
+			"BUILDKITE_REPO":              "repo",
+		}
 	}
 	for envVar, fieldName := range envVars {
 		if val, ok := os.LookupEnv(envVar); ok {

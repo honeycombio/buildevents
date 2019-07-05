@@ -10,9 +10,10 @@ import (
 var Version = "dev"
 
 const (
-	providerTravis = "Travis-CI"
-	providerCircle = "CircleCI"
-	providerGitLab = "GitLab-CI"
+	providerTravis    = "Travis-CI"
+	providerCircle    = "CircleCI"
+	providerGitLab    = "GitLab-CI"
+	providerBuildkite = "Buildkite"
 )
 
 func main() {
