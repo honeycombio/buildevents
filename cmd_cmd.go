@@ -35,7 +35,7 @@ will be launched via "bash -c" using "exec".`,
 			},
 		),
 		DisableFlagsInUseLine: true,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			traceID := strings.TrimSpace(args[0])
 			stepID := strings.TrimSpace(args[1])
 			name := strings.TrimSpace(args[2])
@@ -77,6 +77,8 @@ will be launched via "bash -c" using "exec".`,
 					"failure_reason": err.Error(),
 				})
 			}
+
+			return err
 		},
 	}
 	return execCmd

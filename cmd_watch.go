@@ -45,7 +45,7 @@ build with the appropriate timers.`,
 				return nil
 			},
 		),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			traceID := strings.TrimSpace(args[0])
 
 			ev := createEvent(cfg, *ciProvider, traceID)
@@ -57,7 +57,7 @@ build with the appropriate timers.`,
 			ok, startTime, err := waitCircle(context.Background(), *wcfg)
 			if err != nil {
 				fmt.Printf("buildevents - Error detected: %s\n", err.Error())
-				os.Exit(1)
+				return err
 			}
 
 			status := "failed"
@@ -77,9 +77,11 @@ build with the appropriate timers.`,
 			url, err := buildURL(cfg, traceID, startTime.Unix())
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Unable to create trace URL: %v\n", err)
-				return
+				return err
 			}
 			fmt.Println(url)
+
+			return nil
 		},
 	}
 
