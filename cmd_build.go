@@ -22,7 +22,7 @@ when the build finishes and records the duration of the entire build. It emits
 a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 		Args:                  argOptions(2, "success", "failure"),
 		DisableFlagsInUseLine: true,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			traceID := strings.TrimSpace(args[0])
 			startTime := parseUnix(strings.TrimSpace(args[1]))
 			outcome := strings.TrimSpace(args[2])
@@ -48,6 +48,8 @@ a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 			} else {
 				fmt.Println(url)
 			}
+
+			return nil
 		},
 	}
 	return buildCmd
