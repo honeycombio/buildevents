@@ -77,6 +77,31 @@ jobs:
                   - buildevents.tar
             - store_artifacts:
                 path: artifacts/
+
+  smoketest:
+    executor: linuxgo
+    steps:
+      - buildevents/with_job_span:
+          steps:
+            - attach_workspace:
+                at: artifacts
+            - run: tar -xvf artifacts/buildevents.tar
+            - run:
+                name: "Subcommand success = success"
+                command: |
+                  result=$(artifacts/buildevents-linux-amd64 cmd buildId stepId name -- true >/dev/null && echo "worked")
+                  if [ "$result" != "worked" ]; then
+                    exit 1
+                  fi
+            - run:
+                name: "Subcommand failure = failure"
+                command: |
+                  result=$(artifacts/buildevents-linux-amd64 cmd buildId stepId name -- false > /dev/null || echo "worked" )
+                  if [ "$result" != "worked" ]; then
+                    exit 1
+                  fi
+
+
   publish:
     docker:
       - image: cibuilds/github:0.12.1
@@ -120,9 +145,15 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - publish:
+      - smoketest:
           requires:
             - build
+          filters:
+            tags:
+              only: /.*/
+      - publish:
+          requires:
+            - smoketest
           filters:
             tags:
               only: /^v.*/
