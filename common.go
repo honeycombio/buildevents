@@ -75,6 +75,14 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"CI_MERGE_REQUEST_SOURCE_PROJECT_PATH": "pr_repo",
 			"CI_PROJECT_URL":                       "repo",
 		}
+
+	case "jenkinsx", "jenkins-x":
+		envVars = map[string]string{
+			"JENKINSX_BRANCH_NAME":  "branch",
+			"JENKINSX_BUILD_NUMBER": "build_num",
+			"JENKINSX_PULL_NUMBER":  "pr_number",
+			"JENKINSX_REPO_NAME":    "repo",
+		}
 	}
 	for envVar, fieldName := range envVars {
 		if val, ok := os.LookupEnv(envVar); ok {
