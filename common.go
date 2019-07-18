@@ -78,10 +78,10 @@ func providerInfo(provider string, ev *libhoney.Event) {
 
 	case "jenkinsx", "jenkins-x":
 		envVars = map[string]string{
-			"JENKINSX_BRANCH_NAME":  "branch",
-			"JENKINSX_BUILD_NUMBER": "build_num",
-			"JENKINSX_PULL_NUMBER":  "pr_number",
-			"JENKINSX_REPO_NAME":    "repo",
+			"BRANCH_NAME":  "branch",
+			"BUILD_NUMBER": "build_num",
+			"PULL_NUMBER":  "pr_number",
+			"REPO_NAME":    "repo",
 		}
 	}
 	for envVar, fieldName := range envVars {
