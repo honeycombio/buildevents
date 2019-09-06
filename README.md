@@ -71,7 +71,7 @@ Now that `buildevents` is installed and configured, actually generating spans to
 `buildevents` is invoked with one of three modes, `build`, `step`, and `cmd`.
 * The `build` mode sends the root span for the entire build. It should be called when the build finishes and records the duration of the entire build. It emits a URL pointing to the generated trace in Honeycomb to STDOUT.
 * The `step` mode represents a block of related commands. In Travis-CI, this is one of `install`, `before_script`, `script`, and so on. In CircleCI, this most closely maps to a single job. It should be run at the end of the step.
-* The `cmd` mode invokes an individual command that is part of the build, such as running DB migrations or running a specific test suite. It must be able to be expressed as a single shell command - either a process like `go test` or a shell script. The command to run is the final argument to `buildevents` and will be launched via `bash -c` using `exec`.
+* The `cmd` mode invokes an individual command that is part of the build, such as running DB migrations or running a specific test suite. It must be able to be expressed as a single shell command - either a process like `go test` or a shell script. The command to run is the final argument to `buildevents` and will be launched via `/bin/sh -c` using `exec`.
 
 ## build
 
@@ -138,8 +138,8 @@ CircleCI example:
 jobs:
   go_test:
     steps:
-      - run: echo "STEP_START=$(date +%s)" >> $BASH_ENV
-      - run: echo "STEP_SPAN_ID=$(echo go_test | sum | cut -f 1 -d \ )" >> $BASH_ENV
+      - run: echo "STEP_START=$(date +%s)" >> $SHELL_ENV
+      - run: echo "STEP_SPAN_ID=$(echo go_test | sum | cut -f 1 -d \ )" >> $SHELL_ENV
       - run: ... do stuff
       - run:
           name: finishing span for the job
@@ -222,9 +222,9 @@ commands:
       - run:
           name: starting span for job
           command: |
-            echo "STEP_START=$(date +%s)" >> $BASH_ENV
-            echo "STEP_SPAN_ID=$(echo $CIRCLE_JOB | sum | cut -f 1 -d \ )" >> $BASH_ENV
-      - run: echo "PATH=$PATH:buildevents/bin/" >> $BASH_ENV
+            echo "STEP_START=$(date +%s)" >> $SHELL_ENV
+            echo "STEP_SPAN_ID=$(echo $CIRCLE_JOB | sum | cut -f 1 -d \ )" >> $SHELL_ENV
+      - run: echo "PATH=$PATH:buildevents/bin/" >> $SHELL_ENV
       - steps: << parameters.steps >>
       - run:
           name: finishing span for job
