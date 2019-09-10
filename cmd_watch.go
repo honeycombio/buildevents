@@ -157,7 +157,7 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 		status := wf.Status
 
 		switch status {
-		case "running", "failing":
+		case "running", "failing", "on_hold":
 			fmt.Print(".")
 			continue
 		case "success":
