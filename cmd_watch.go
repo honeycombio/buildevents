@@ -17,8 +17,12 @@ import (
 
 // numChecks is the number of times to verify that we're finished before
 // declaring success in case we enter a transient state with blocked jobs that
-// really will start soon.
-const numChecks = 3
+// really will start soon. This can be long - wait for up to 2 minutes (5sec *
+// 24 = 120sec). It's ok for this to be long because it only covers the time
+// when there are existing jobs that are not going to run. Most builds finish
+// with all jobs finishing, so this timer will not caused delayed builds in
+// those cases.
+const numChecks = 24
 
 type watchConfig struct {
 	timeoutMin int
@@ -54,7 +58,7 @@ build with the appropriate timers.`,
 			providerInfo(*ciProvider, ev)
 			arbitraryFields(*filename, ev) // TODO: consider - move this until after the watch timeout??
 
-			ok, startTime, err := waitCircle(context.Background(), *wcfg)
+			ok, startTime, endTime, err := waitCircle(context.Background(), *wcfg)
 			if err != nil {
 				fmt.Printf("buildevents - Error detected: %s\n", err.Error())
 				return err
@@ -70,7 +74,7 @@ build with the appropriate timers.`,
 				"trace.span_id": traceID,
 				"name":          "watch " + traceID,
 				"status":        status,
-				"duration_ms":   time.Since(startTime) / time.Millisecond,
+				"duration_ms":   endTime.Sub(startTime) / time.Millisecond,
 			})
 			ev.Timestamp = startTime
 
@@ -113,21 +117,23 @@ build with the appropriate timers.`,
 
 // waitCircle polls the CircleCI API checking for the status of this workflow
 // and the jobs it contains. It returns whether the workflow build succeeded,
-// the time it started. The err returned is for errors polling the CircleCI API,
-// not errors in the build itself.
-func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error) {
+// the time it started, and the time it ended (which will be either nowish or
+// sometime in the past if we timed out). The err returned is for errors polling
+// the CircleCI API, not errors in the build itself.
+func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, ended time.Time, err error) {
 	// we need a token to query anything; give a helpful error if we have no token
 	if cfg.circleKey == "" {
-		return false, time.Now(), fmt.Errorf("circle token required to poll the API")
+		return false, time.Now(), time.Now().Add(time.Second), fmt.Errorf("circle token required to poll the API")
 	}
 	client := &circleci.Client{Token: cfg.circleKey}
 	wf, err := client.GetWorkflowV2(cfg.workflowID)
 	if err != nil {
-		return false, time.Now(), err
+		return false, time.Now(), time.Now().Add(time.Second), err
 	}
-	start := wf.CreatedAt
-	var passed bool
+	started = wf.CreatedAt
+	ended = time.Now() // set a default in case we early exit
 
+	// set up cancellation timeout based on the configured timout duration
 	done := make(chan struct{})
 	ctx, cxl := context.WithTimeout(parent, time.Duration(cfg.timeoutMin)*time.Minute)
 	defer cxl()
@@ -135,7 +141,8 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 	// sometimes there's a gap between when a job finishes and the next one starts.
 	// In that case there are no jobs running and some jobs blocked that could
 	// still run. If we think the build has passed and finished, let's give it a
-	// buffer to spin up new jobs before really considering it done.
+	// buffer to spin up new jobs before really considering it done. This buffer
+	// will check for up to 2 minutes
 	checksLeft := numChecks + 1 // +1 because we decrement at the beginning of the loop
 
 	go func() {
@@ -147,12 +154,18 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 			case <-ctx.Done():
 				// TODO add the fact that it timed out to the trace to say why it failed
 				fmt.Fprintf(os.Stderr, "Timeout reached waiting for the workflow to finish\n")
+				ended = time.Now()
 				return
 			default:
 			}
 
 			finished, failed, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
 			if finished {
+				// if this is the first time we think we're finished store the timestamp
+				if checksLeft >= numChecks {
+					ended = time.Now()
+				}
+				// ok, carry on
 				checksLeft--
 				if checksLeft <= 0 {
 					// we're done checking.
@@ -173,6 +186,7 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 				if failed {
 					// don't bother rechecking if the job has failed but didn't error
 					fmt.Printf("Build failed!\n")
+					ended = time.Now()
 					return
 				}
 				// yay looks like maybe we're done?
@@ -189,7 +203,7 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 	}()
 
 	<-done
-	return passed, start, nil
+	return passed, started, ended, nil
 }
 
 // evalWorkflow looks at the CircleCI API for the list of jobs in this workflow
