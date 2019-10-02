@@ -9,7 +9,7 @@ github.com/honeycombio/libhoney-go
 github.com/honeycombio/libhoney-go/transmission
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/jszwedko/go-circleci v0.2.0 => github.com/maplebed/go-circleci v0.0.0-20190624145132-b886dbac393
+# github.com/jszwedko/go-circleci v0.2.0 => github.com/maplebed/go-circleci v0.0.0-20191002151007-b2b19c1493d
 github.com/jszwedko/go-circleci
 # github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
 github.com/kr/logfmt

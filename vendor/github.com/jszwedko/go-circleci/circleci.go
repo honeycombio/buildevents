@@ -374,7 +374,7 @@ func (c *Client) GetWorkflowV2(id string) (*WorkflowV2, error) {
 func (c *Client) ListWorkflowV2Jobs(id string, paginationToken *string) ([]*WorkflowJob, *string, error) {
 	type pagedJobs struct {
 		NextPageToken *string        `json:"next_page_token"`
-		Jobs          []*WorkflowJob `json:"jobs"`
+		Jobs          []*WorkflowJob `json:"items"`
 	}
 
 	// TODO if paginationToken is not nil, fetch the next page
