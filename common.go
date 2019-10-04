@@ -83,6 +83,15 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"PULL_NUMBER":  "pr_number",
 			"REPO_NAME":    "repo",
 		}
+
+	case "google-cloud-build", "cloud-build", "gcb":
+		envVars = map[string]string{
+			"BRANCH_NAME": "branch",
+			"BUILD_ID":    "build_num",
+			"HEAD_BRANCH": "pr_branch",
+			"REPO_OWNER":  "pr_user",
+			"REPO_NAME":   "repo",
+		}
 	}
 	for envVar, fieldName := range envVars {
 		if val, ok := os.LookupEnv(envVar); ok {

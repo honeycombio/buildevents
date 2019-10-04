@@ -50,6 +50,8 @@ about your Continuous Integration builds.`,
 			prov = providerGitLab
 		} else if _, present := os.LookupEnv("JENKINS-X"); present {
 			prov = providerJenkinsX
+		} else if _, present := os.LookupEnv("GOOGLE-CLOUD-BUILD"); present {
+			prov = providerGoogleCloudBuild
 		}
 	}
 	if prov != "" {
