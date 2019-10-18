@@ -50,7 +50,6 @@ will be launched via "bash -c" using "exec".`,
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
-			arbitraryFields(*filename, ev)
 
 			spanBytes := make([]byte, 16)
 			rand.Read(spanBytes)
@@ -58,6 +57,10 @@ will be launched via "bash -c" using "exec".`,
 			start := time.Now()
 			err := runCommand(subcmd)
 			dur := time.Since(start)
+
+			// Annotate with arbitrary fields after the command runs
+			// this way we can consume a file if the command itself generated one
+			arbitraryFields(*filename, ev)
 
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": stepID,
