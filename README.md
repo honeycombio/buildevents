@@ -131,7 +131,7 @@ before_script:
   - STEP_START=$(date +%s)
   - STEP_SPAN_ID=$(echo before_script | sum | cut -f 1 -d \ )
   - ... do stuff
-  - buildevents travis-ci step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START before_script
+  - buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START before_script
 ```
 
 CircleCI example:
@@ -196,7 +196,7 @@ script:
   - ./buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START script
 
 after_failure:
-  - ./buildevents travis-ci build $TRAVIS_BUILD_ID $BUILD_START failure
+  - ./buildevents build $TRAVIS_BUILD_ID $BUILD_START failure
 
 after_success:
   - STEP_START=$(date +%s)
