@@ -15,4 +15,4 @@ require (
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 )
 
-replace github.com/jszwedko/go-circleci => github.com/maplebed/go-circleci v0.0.0-20191002151007-b2b19c1493d
+replace github.com/jszwedko/go-circleci => github.com/maplebed/go-circleci v0.0.0-20191121030249-089ef54587e
