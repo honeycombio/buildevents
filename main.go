@@ -36,6 +36,7 @@ func main() {
 
 	// Do the work
 	if err := root.Execute(); err != nil {
+		libhoney.Close()
 		os.Exit(1)
 	}
 }
