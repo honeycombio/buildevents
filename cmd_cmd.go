@@ -36,6 +36,11 @@ will be launched via "bash -c" using "exec".`,
 		),
 		DisableFlagsInUseLine: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Don't show usage if RunE returns an error. This set in RunE
+			// instead of when we instantiate the cmd so we don't suppress usage
+			// for errors from Args.
+			cmd.SilenceUsage = true
+
 			traceID := strings.TrimSpace(args[0])
 			stepID := strings.TrimSpace(args[1])
 			name := strings.TrimSpace(args[2])
