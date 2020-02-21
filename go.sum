@@ -31,10 +31,8 @@ github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANyt
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 h1:T+h1c/A9Gawja4Y9mFVWj2vyii2bbUNDw3kt9VxK2EY=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
-github.com/maplebed/go-circleci v0.0.0-20191002151007-b2b19c1493d h1:VtCxoLvLWrlz/k3cWZhTQ90/BM4ex2/1dp8ClG4lmfM=
-github.com/maplebed/go-circleci v0.0.0-20191002151007-b2b19c1493d/go.mod h1:OW/yiyLmpZqdbYUHRuFS83n1TpphzLe6sDFvOa8xX4w=
-github.com/maplebed/go-circleci v0.0.0-20191121030249-089ef54587e h1:3bo8bGTgwaDE4CU+BNg/CVvHDUJJ0m6biuIBa78erzM=
-github.com/maplebed/go-circleci v0.0.0-20191121030249-089ef54587e/go.mod h1:OW/yiyLmpZqdbYUHRuFS83n1TpphzLe6sDFvOa8xX4w=
+github.com/maplebed/go-circleci v0.2.1-0.20191121000249-089ef54587e5 h1:O4HwrOLgNCy5jYsUfXv/sjjOCWjdNNTzUIf3d9vkUhc=
+github.com/maplebed/go-circleci v0.2.1-0.20191121000249-089ef54587e5/go.mod h1:OW/yiyLmpZqdbYUHRuFS83n1TpphzLe6sDFvOa8xX4w=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2 h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=
