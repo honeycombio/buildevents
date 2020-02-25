@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -91,26 +90,8 @@ func runCommand(subcmd string) error {
 	fmt.Println("running /bin/bash -c", subcmd)
 	cmd := exec.Command("/bin/bash", "-c", subcmd)
 
-	outReader, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	errReader, err := cmd.StderrPipe()
-	if err != nil {
-		return err
-	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-
-	go func() {
-		io.Copy(os.Stdout, outReader)
-	}()
-	go func() {
-		io.Copy(os.Stderr, errReader)
-	}()
-
-	return cmd.Wait()
+	return cmd.Run()
 }
