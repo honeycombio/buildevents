@@ -159,8 +159,15 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 			default:
 			}
 
-			finished, failed, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
+			finished, failed, blocked, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
 			if finished {
+				if !failed && !blocked && err == nil {
+					// we are legit done.
+					passed = true
+					fmt.Println("Build passed!")
+					return
+				}
+
 				// if this is the first time we think we're finished store the timestamp
 				if checksLeft >= numChecks {
 					ended = time.Now()
@@ -210,15 +217,16 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 // and decides whether the build has finished and if finished, whether it
 // failed. If an error is returned, it represents an error talking to the
 // CircleCI API, not an error with the workflow.
-func evalWorkflow(client *circleci.Client, wfID string, jobName string) (finished bool, failed bool, err error) {
+func evalWorkflow(client *circleci.Client, wfID string, jobName string) (finished bool, failed bool, blocked bool, err error) {
 	fmt.Printf("%s: polling for jobs: ", time.Now().Format(time.StampMilli))
 	wfJobs, err := getJobs(client, wfID)
 	if err != nil {
 		fmt.Printf("error polling: %s\n", err.Error())
-		return true, true, err
+		return true, true, false, err
 	}
 	fmt.Println(summarizeJobList(wfJobs))
 
+	blocked = false
 	for _, job := range wfJobs {
 		// always count ourself as finished so we don't wait for ourself
 		if job.Name == jobName {
@@ -226,23 +234,27 @@ func evalWorkflow(client *circleci.Client, wfID string, jobName string) (finishe
 		}
 
 		switch job.Status {
-		case "success", "blocked":
-			// success means it passed
+		case "success":
+			// success means it passed, don't keep track of it
+			continue
+		case "blocked":
 			// blocked means it can't yet run, but that could be because either
-			// it's waiting on a running job or
+			// it's waiting on a running job, depends on a failed job, or
 			// it's not configured to run this build (because of a tag or something)
+			blocked = true
 			continue
 		case "queued":
-			return false, failed, nil
+			return false, failed, blocked, nil
 		case "failed":
 			failed = true
 			continue
 		case "running":
 			// We can stop short as soon as we find an unfinished job
-			return false, failed, nil
+			return false, failed, blocked, nil
 		}
 	}
-	return true, failed, nil
+
+	return true, failed, blocked, nil
 }
 
 // getJobs queries the CircleCI API for a list of all jobs in the current workflow
@@ -279,7 +291,7 @@ func summarizeJobList(wfJobs []*circleci.WorkflowJob) string {
 
 	// sort the statuses present to print them in a consistent order
 	sortedStatusList := make([]string, 0, len(countByStatus))
-	for key, _ := range countByStatus {
+	for key := range countByStatus {
 		sortedStatusList = append(sortedStatusList, key)
 	}
 	sort.Strings(sortedStatusList)
