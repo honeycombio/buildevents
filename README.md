@@ -172,7 +172,7 @@ jobs:
 
 We've covered each of the three modes in which `buildevents` is invoked and shown abbreviated examples for each one. Now it's time to look at an entire config to see how they interact: installation, running a build, and finally reporting the whole thing.
 
-In both of these examples, the `BUILDEVENTS_APIKEY` should be set in the protected environment variable section of the CI config so that your API key is not checked in to your source.
+In both of these examples, the `BUILDEVENT_APIKEY` should be set in the protected environment variable section of the CI config so that your API key is not checked in to your source.
 
 Travis-CI example:
 ```yaml
