@@ -15,6 +15,7 @@ const (
 	providerGitLab           = "GitLab-CI"
 	providerJenkinsX         = "Jenkins-X"
 	providerGoogleCloudBuild = "Google-Cloud-Build"
+	providerAzurePipelines   = "Azure-Piplines"
 )
 
 func main() {
