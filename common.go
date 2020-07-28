@@ -93,6 +93,20 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"REPO_NAME":   "repo",
 		}
 
+	case "azure-pipelines", "azure-devops", "vsts", "tfs":
+		envVars = map[string]string{
+			"BUILD_SOURCEBRANCHNAME":               "branch",
+			"BUILD_BUILDID":                        "build_id",
+			"BUILD_BUILDNUMBER":                    "build_number",
+			"SYSTEM_JOBDISPLAYNAME":                "job_name",
+			"SYSTEM_STAGEDISPLAYNAME":              "stage_name",
+			"SYSTEM_PULLREQUEST_PULLREQUESTID":     "pr_id",
+			"SYSTEM_PULLREQUEST_PULLREQUESTNUMBER": "pr_number",
+			"SYSTEM_PULLREQUEST_SOURCEBRANCH":      "pr_branch",
+			"BUILD_REQUESTEDFOR":                   "build_user",
+			"BUILD_REPOSITORY_URI":                 "repo",
+		}
+    
 	case "github-actions", "githubactions", "github":
 		envVars = map[string]string{
 			"GITHUB_REF":        "branch",
@@ -101,8 +115,8 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"GITHUB_HEAD_REF":   "pr_branch",
 			"GITHUB_ACTOR":      "pr_user",
 			"GITHUB_REPOSITORY": "repo",
-		}
-	}
+    }
+  }
 	for envVar, fieldName := range envVars {
 		if val, ok := os.LookupEnv(envVar); ok {
 			ev.AddField(fieldName, val)

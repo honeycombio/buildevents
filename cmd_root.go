@@ -52,6 +52,8 @@ about your Continuous Integration builds.`,
 			prov = providerJenkinsX
 		} else if _, present := os.LookupEnv("GOOGLE-CLOUD-BUILD"); present {
 			prov = providerGoogleCloudBuild
+		} else if _, present := os.LookupEnv("TF_BUILD"); present {
+			prov = providerAzurePipelines
 		} else if _, present := os.LookupEnv("GITHUB_ACTIONS"); present {
 			prov = providerGitHubActions
 		}
