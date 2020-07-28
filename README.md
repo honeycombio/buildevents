@@ -185,7 +185,7 @@ env:
 install:
   - STEP_START=$(date +%s)
   - STEP_SPAN_ID=$(echo install | sum | cut -f 1 -d \ )
-  - curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents
+  - curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-linux-amd64
   - chmod 755 buildevents
   - # ... any other setup necessary for your build
   - ./buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START install
