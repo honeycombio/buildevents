@@ -92,6 +92,16 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"REPO_OWNER":  "pr_user",
 			"REPO_NAME":   "repo",
 		}
+
+	case "github-actions", "githubactions", "github":
+		envVars = map[string]string{
+			"GITHUB_REF":        "branch",
+			"GITHUB_RUN_ID":     "build_num",
+			"GITHUB_WORKFLOW":   "workflow_name",
+			"GITHUB_HEAD_REF":   "pr_branch",
+			"GITHUB_ACTOR":      "pr_user",
+			"GITHUB_REPOSITORY": "repo",
+		}
 	}
 	for envVar, fieldName := range envVars {
 		if val, ok := os.LookupEnv(envVar); ok {
