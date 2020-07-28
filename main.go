@@ -16,6 +16,7 @@ const (
 	providerJenkinsX         = "Jenkins-X"
 	providerGoogleCloudBuild = "Google-Cloud-Build"
 	providerAzurePipelines   = "Azure-Piplines"
+	providerGitHubActions    = "GitHub-Actions"
 )
 
 func main() {

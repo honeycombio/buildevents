@@ -39,7 +39,7 @@ about your Continuous Integration builds.`,
 		root.PersistentFlags().Lookup("filename").Value.Set(fname)
 	}
 
-	root.PersistentFlags().StringVarP(ciProvider, "provider", "p", "", "[env.BUILDEVENT_CIPROVIDER] if unset, will inspect the environment to try and detect Travis-CI, CircleCI, or GitLab-CI.")
+	root.PersistentFlags().StringVarP(ciProvider, "provider", "p", "", "[env.BUILDEVENT_CIPROVIDER] if unset, will inspect the environment to try to detect common CI providers.")
 	prov := os.Getenv("BUILDEVENT_CIPROVIDER")
 	if prov == "" {
 		if _, present := os.LookupEnv("TRAVIS"); present {
@@ -54,6 +54,8 @@ about your Continuous Integration builds.`,
 			prov = providerGoogleCloudBuild
 		} else if _, present := os.LookupEnv("TF_BUILD"); present {
 			prov = providerAzurePipelines
+		} else if _, present := os.LookupEnv("GITHUB_ACTIONS"); present {
+			prov = providerGitHubActions
 		}
 	}
 	if prov != "" {

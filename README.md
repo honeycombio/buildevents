@@ -65,6 +65,8 @@ The Build ID may already be available in the environment for your build:
 * GitLab-CI: `CI_PIPELINE_ID`
 * JenkinsX: `JENKINSX_BUILD_NUMBER`
 * Google-Cloud-Build: `BUILD_ID`
+* GitHub Actions: `GITHUB_RUN_ID`
+
 # Use
 
 Now that `buildevents` is installed and configured, actually generating spans to send to Honeycomb involves invoking `buildevents` in various places throughout your build config.
