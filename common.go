@@ -92,6 +92,19 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"REPO_OWNER":  "pr_user",
 			"REPO_NAME":   "repo",
 		}
+	case "azure-pipelines", "azure-devops", "vsts", "tfs":
+		envVars = map[string]string{
+			"BUILD_SOURCEBRANCHNAME":               "branch",
+			"BUILD_BUILDID":                        "build_id",
+			"BUILD_BUILDNUMBER":                    "build_number",
+			"SYSTEM_JOBDISPLAYNAME":                "job_name",
+			"SYSTEM_STAGEDISPLAYNAME":              "stage_name",
+			"SYSTEM_PULLREQUEST_PULLREQUESTID":     "pr_id",
+			"SYSTEM_PULLREQUEST_PULLREQUESTNUMBER": "pr_number",
+			"SYSTEM_PULLREQUEST_SOURCEBRANCH":      "pr_branch",
+			"BUILD_REQUESTEDFOR":                   "build_user",
+			"BUILD_REPOSITORY_URI":                 "repo",
+		}
 	}
 	for envVar, fieldName := range envVars {
 		if val, ok := os.LookupEnv(envVar); ok {
