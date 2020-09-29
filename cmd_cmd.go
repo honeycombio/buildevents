@@ -13,6 +13,8 @@ import (
 	libhoney "github.com/honeycombio/libhoney-go"
 )
 
+var DepthFlag int
+
 func commandCmd(cfg *libhoney.Config, filename *string, ciProvider *string) *cobra.Command {
 	// CMD eg: buildevents cmd $TRAVIS_BUILD_ID $STAGE_SPAN_ID go-test -- go test github.com/honeycombio/hound/...
 	execCmd := &cobra.Command{
@@ -33,7 +35,7 @@ will be launched via "bash -c" using "exec".`,
 				return nil
 			},
 		),
-		DisableFlagsInUseLine: true,
+		DisableFlagsInUseLine: false,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Don't show usage if RunE returns an error. This set in RunE
 			// instead of when we instantiate the cmd so we don't suppress usage
@@ -48,7 +50,25 @@ will be launched via "bash -c" using "exec".`,
 			for _, s := range args[3:] {
 				quoted = append(quoted, fmt.Sprintf("\"%s\"", strings.Replace(s, "\"", "\\\"", -1)))
 			}
-			subcmd := strings.Join(quoted, " ")
+
+			var subcmd string
+			var max int
+
+			// -1 is the default defined, the intention being nothing should be
+			// censored. Otherwise, we find the lesser of the command length and the
+			// DepthFlag value given and take a slice of that many elements and use
+			// that for the command to be sent to Honeycomb
+			if DepthFlag < 0 {
+				subcmd = strings.Join(quoted, " ")
+			} else {
+				if len(quoted) < DepthFlag {
+					max = len(quoted)
+				} else {
+					max = DepthFlag
+				}
+
+				subcmd = strings.Join(quoted[0:max], " ")
+			}
 
 			ev := createEvent(cfg, *ciProvider, traceID)
 			defer ev.Send()
@@ -88,6 +108,8 @@ will be launched via "bash -c" using "exec".`,
 			return err
 		},
 	}
+
+	execCmd.Flags().IntVarP(&DepthFlag, "depth", "d", -1, "Depth of subcmd arguments to use")
 	return execCmd
 }
 
