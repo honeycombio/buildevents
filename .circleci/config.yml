@@ -7,7 +7,7 @@ executors:
   linuxgo:
     working_directory: /go/src/github.com/honeycombio/buildevents
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.15.2
 
 commands:
   go-build:
