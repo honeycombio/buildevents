@@ -161,6 +161,11 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 
 			anyRunning, anyFailed, anyBlocked, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
 			if !anyRunning {
+				// if this is the first time we think we're finished store the timestamp
+				if checksLeft >= numChecks {
+					ended = time.Now()
+				}
+
 				if !anyBlocked && err == nil {
 					// we are legit done.
 					passed = !anyFailed
@@ -172,10 +177,6 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 					return
 				}
 
-				// if this is the first time we think we're finished store the timestamp
-				if checksLeft >= numChecks {
-					ended = time.Now()
-				}
 				// ok, carry on
 				checksLeft--
 				if checksLeft <= 0 {
