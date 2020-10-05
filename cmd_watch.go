@@ -159,17 +159,29 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 			default:
 			}
 
-			finished, failed, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
-			if finished {
+			anyRunning, anyFailed, anyBlocked, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
+			if !anyRunning {
 				// if this is the first time we think we're finished store the timestamp
 				if checksLeft >= numChecks {
 					ended = time.Now()
 				}
+
+				if !anyBlocked && err == nil {
+					// we are legit done.
+					passed = !anyFailed
+					if passed {
+						fmt.Println("Build passed!")
+					} else {
+						fmt.Println("Build failed!")
+					}
+					return
+				}
+
 				// ok, carry on
 				checksLeft--
 				if checksLeft <= 0 {
 					// we're done checking.
-					passed = !failed
+					passed = !anyFailed
 					if passed {
 						fmt.Println("Build passed!")
 					} else {
@@ -183,8 +195,8 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 					fmt.Printf("Querying the CirlceCI API failed with %s; trying %d more times before giving up.\n", err.Error(), checksLeft)
 					continue
 				}
-				if failed {
-					// don't bother rechecking if the job has failed but didn't error
+				if anyFailed {
+					// don't bother rechecking if a job has failed
 					fmt.Printf("Build failed!\n")
 					ended = time.Now()
 					return
@@ -198,7 +210,6 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 			// finished.
 			passed = false
 			checksLeft = numChecks
-
 		}
 	}()
 
@@ -210,39 +221,46 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 // and decides whether the build has finished and if finished, whether it
 // failed. If an error is returned, it represents an error talking to the
 // CircleCI API, not an error with the workflow.
-func evalWorkflow(client *circleci.Client, wfID string, jobName string) (finished bool, failed bool, err error) {
+func evalWorkflow(client *circleci.Client, wfID string, jobName string) (anyRunning bool, anyFailed bool, anyBlocked bool, err error) {
 	fmt.Printf("%s: polling for jobs: ", time.Now().Format(time.StampMilli))
 	wfJobs, err := getJobs(client, wfID)
 	if err != nil {
 		fmt.Printf("error polling: %s\n", err.Error())
-		return true, true, err
+		return true, true, false, err
 	}
 	fmt.Println(summarizeJobList(wfJobs))
 
+	anyRunning = false
+	anyBlocked = false
 	for _, job := range wfJobs {
-		// always count ourself as finished so we don't wait for ourself
+		// skip ourself so we don't wait if we're the only job running
 		if job.Name == jobName {
 			continue
 		}
 
 		switch job.Status {
-		case "success", "blocked":
-			// success means it passed
+		case "success":
+			// success means it finished and passed, don't keep track of it
+			continue
+		case "blocked":
 			// blocked means it can't yet run, but that could be because either
-			// it's waiting on a running job or
+			// it's waiting on a running job, depends on a failed job, or
 			// it's not configured to run this build (because of a tag or something)
+			anyBlocked = true
 			continue
 		case "queued":
-			return false, failed, nil
+			// queued means a job is due to start running soon, so we consider it running
+			// already.
+			anyRunning = true
 		case "failed":
-			failed = true
+			anyFailed = true
 			continue
 		case "running":
-			// We can stop short as soon as we find an unfinished job
-			return false, failed, nil
+			anyRunning = true
 		}
 	}
-	return true, failed, nil
+
+	return anyRunning, anyFailed, anyBlocked, nil
 }
 
 // getJobs queries the CircleCI API for a list of all jobs in the current workflow
@@ -279,7 +297,7 @@ func summarizeJobList(wfJobs []*circleci.WorkflowJob) string {
 
 	// sort the statuses present to print them in a consistent order
 	sortedStatusList := make([]string, 0, len(countByStatus))
-	for key, _ := range countByStatus {
+	for key := range countByStatus {
 		sortedStatusList = append(sortedStatusList, key)
 	}
 	sort.Strings(sortedStatusList)
