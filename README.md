@@ -170,6 +170,36 @@ jobs:
       - run: $GOPATH/bin/buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID go-test -- go test -timeout 2m -mod vendor ./...
 ```
 
+## Attaching more traces from your build and test process
+
+Every command running through `buildevents cmd` will receive a `HONEYCOMB_TRACE` environment variable that contains a marshalled trace propagation context. This can be used to connect more spans to this trace.
+
+Ruby Beeline example:
+```ruby
+# at the very start of the command
+# establish a command-level span, linking to the buildevent
+process_span = Honeycomb.start_span(name: File.basename($PROGRAM_NAME), serialized_trace: ENV['HONEYCOMB_TRACE'])
+Honeycomb.add_field_to_trace('process.full_name', $PROGRAM_NAME)
+
+# if you're not passing sensitive information through CLI args, enable this for more insights.
+#Honeycomb.add_field_to_trace('process.args', ARGV)
+
+# override the HONEYCOMB_TRACE for sub-processes
+ENV['HONEYCOMB_TRACE'] = process_span.to_trace_header
+
+# ensure that the process_span is sent before the process terminates
+at_exit do
+  if $ERROR_INFO&.is_a?(SystemExit)
+    process_span.add_field('process.exit_code', $ERROR_INFO.status)
+  elsif $ERROR_INFO
+    process_span.add_field('process.exit_code', $ERROR_INFO.class.name)
+  else
+    process_span.add_field('process.exit_code', 'unknown')
+  end
+  process_span.send
+end
+```
+
 # Putting it all together
 
 We've covered each of the three modes in which `buildevents` is invoked and shown abbreviated examples for each one. Now it's time to look at an entire config to see how they interact: installation, running a build, and finally reporting the whole thing.
