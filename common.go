@@ -177,7 +177,7 @@ func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("unable to infer UI host: %s", uiHost)
 	}
-	u.Path = path.Join(teamName, "datasets", cfg.Dataset, "trace")
+	u.Path = path.Join(teamName, "datasets", strings.Replace(cfg.Dataset, " ", "-", -1), "trace")
 	endTime := time.Now().Add(10 * time.Minute).Unix()
 	return fmt.Sprintf(
 		"%s?trace_id=%s&trace_start_ts=%d&trace_end_ts=%d",
