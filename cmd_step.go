@@ -30,7 +30,6 @@ most closely maps to a single job. It should be run at the end of the step.`,
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
-			arbitraryFields(*filename, ev)
 
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": traceID,
@@ -40,6 +39,8 @@ most closely maps to a single job. It should be run at the end of the step.`,
 				"duration_ms":     time.Since(startTime) / time.Millisecond,
 			})
 			ev.Timestamp = startTime
+
+			arbitraryFields(*filename, ev)
 
 			return nil
 		},

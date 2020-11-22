@@ -62,10 +62,6 @@ will be launched via "bash -c" using "exec".`,
 			err := runCommand(subcmd)
 			dur := time.Since(start)
 
-			// Annotate with arbitrary fields after the command runs
-			// this way we can consume a file if the command itself generated one
-			arbitraryFields(*filename, ev)
-
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": stepID,
 				"trace.span_id":   fmt.Sprintf("%x", spanBytes),
@@ -75,6 +71,10 @@ will be launched via "bash -c" using "exec".`,
 				"cmd":             subcmd,
 			})
 			ev.Timestamp = start
+
+			// Annotate with arbitrary fields after the command runs
+			// this way we can consume a file if the command itself generated one
+			arbitraryFields(*filename, ev)
 
 			if err == nil {
 				ev.AddField("status", "success")
