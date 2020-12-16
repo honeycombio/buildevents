@@ -162,6 +162,7 @@ workflows:
             tags:
               only: /.*/
       - publish:
+          context: Honeycomb Secrets for Public Repos
           requires:
             - smoketest
           filters:
