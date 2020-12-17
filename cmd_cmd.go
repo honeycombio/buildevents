@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	libhoney "github.com/honeycombio/libhoney-go"
+	propagation "github.com/honeycombio/beeline-go/propagation"
 )
 
 func commandCmd(cfg *libhoney.Config, filename *string, ciProvider *string) *cobra.Command {
@@ -59,7 +60,19 @@ will be launched via "bash -c" using "exec".`,
 			rand.Read(spanBytes)
 
 			start := time.Now()
-			err := runCommand(subcmd)
+
+			// copy out the current set of fields to avoid later modification
+			localFields := map[string]interface{}{}
+			for k, v := range ev.Fields() {
+				localFields[k] = v
+			}
+			var spanID = fmt.Sprintf("%x", spanBytes)
+			prop := &propagation.PropagationContext{
+				TraceID:      traceID,
+				ParentID:     spanID,
+				TraceContext: localFields,
+			}
+			err := runCommand(subcmd, prop)
 			dur := time.Since(start)
 
 			// Annotate with arbitrary fields after the command runs
@@ -68,7 +81,7 @@ will be launched via "bash -c" using "exec".`,
 
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": stepID,
-				"trace.span_id":   fmt.Sprintf("%x", spanBytes),
+				"trace.span_id":   spanID,
 				"service_name":    "cmd",
 				"name":            name,
 				"duration_ms":     dur / time.Millisecond,
@@ -91,9 +104,13 @@ will be launched via "bash -c" using "exec".`,
 	return execCmd
 }
 
-func runCommand(subcmd string) error {
+func runCommand(subcmd string, prop *propagation.PropagationContext) error {
 	fmt.Println("running /bin/bash -c", subcmd)
 	cmd := exec.Command("/bin/bash", "-c", subcmd)
+
+	cmd.Env = append(os.Environ(),
+		"HONEYCOMB_TRACE=" + propagation.MarshalHoneycombTraceContext(prop),
+	)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
