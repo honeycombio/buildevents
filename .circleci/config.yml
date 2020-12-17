@@ -134,28 +134,33 @@ workflows:
   build:
     jobs:
       - setup:
+          context: Honeycomb Secrets for Public Repos
           filters:
             tags:
               only: /.*/
       - watch:
+          context: Honeycomb Secrets for Public Repos
           requires:
             - setup
           filters:
             tags:
               only: /.*/
       - test:
+          context: Honeycomb Secrets for Public Repos
           requires:
             - setup
           filters:
             tags:
               only: /.*/
       - build:
+          context: Honeycomb Secrets for Public Repos
           requires:
             - test
           filters:
             tags:
               only: /.*/
       - smoketest:
+          context: Honeycomb Secrets for Public Repos
           requires:
             - build
           filters:
