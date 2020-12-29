@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  buildevents: honeycombio/buildevents@0.2.7
+  buildevents: honeycombio/buildevents@0.2.3
 
 executors:
   linuxgo:
@@ -133,13 +133,13 @@ jobs:
 workflows:
   build_forked:
     jobs:
-#      - setup:
-#          filters:
-#            branches:
-#              only: /pull\/.*/
+      - setup:
+          filters:
+            branches:
+              only: /pull\/.*/
       - test:
-#          requires:
-#            - setup
+          requires:
+            - setup
           filters:
             branches:
               only: /pull\/.*/
