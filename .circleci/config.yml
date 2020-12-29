@@ -133,7 +133,13 @@ jobs:
 workflows:
   build_forked:
     jobs:
+      - setup:
+          filters:
+            branches:
+              only: /pull\/.*/
       - test:
+          requires:
+            - setup
           filters:
             branches:
               only: /pull\/.*/
