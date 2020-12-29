@@ -10,8 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	libhoney "github.com/honeycombio/libhoney-go"
 	propagation "github.com/honeycombio/beeline-go/propagation"
+	libhoney "github.com/honeycombio/libhoney-go"
 )
 
 func commandCmd(cfg *libhoney.Config, filename *string, ciProvider *string) *cobra.Command {
@@ -44,6 +44,7 @@ will be launched via "bash -c" using "exec".`,
 			traceID := strings.TrimSpace(args[0])
 			stepID := strings.TrimSpace(args[1])
 			name := strings.TrimSpace(args[2])
+			quiet, _ := cmd.Flags().GetBool("quiet")
 
 			var quoted []string
 			for _, s := range args[3:] {
@@ -72,7 +73,7 @@ will be launched via "bash -c" using "exec".`,
 				ParentID:     spanID,
 				TraceContext: localFields,
 			}
-			err := runCommand(subcmd, prop)
+			err := runCommand(subcmd, prop, quiet)
 			dur := time.Since(start)
 
 			// Annotate with arbitrary fields after the command runs
@@ -101,15 +102,19 @@ will be launched via "bash -c" using "exec".`,
 			return err
 		},
 	}
+	var quiet bool
+	execCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "silence non-cmd output")
 	return execCmd
 }
 
-func runCommand(subcmd string, prop *propagation.PropagationContext) error {
-	fmt.Println("running /bin/bash -c", subcmd)
+func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool) error {
+	if quiet == false {
+		fmt.Println("running /bin/bash -c", subcmd)
+	}
 	cmd := exec.Command("/bin/bash", "-c", subcmd)
 
 	cmd.Env = append(os.Environ(),
-		"HONEYCOMB_TRACE=" + propagation.MarshalHoneycombTraceContext(prop),
+		"HONEYCOMB_TRACE="+propagation.MarshalHoneycombTraceContext(prop),
 	)
 
 	cmd.Stdout = os.Stdout
