@@ -131,6 +131,31 @@ jobs:
                   ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-darwin-amd64
 
 workflows:
+  build_forked:
+    jobs:
+      - setup:
+          filters:
+            branches:
+              only: /pull\/.*/
+      - test:
+          requires:
+            - setup
+          filters:
+            branches:
+              only: /pull\/.*/
+      - build:
+          requires:
+            - test
+          filters:
+            branches:
+              only: /pull\/.*/
+      - smoketest:
+          requires:
+            - build
+          filters:
+            branches:
+              only: /pull\/.*/
+
   build:
     jobs:
       - setup:
@@ -138,6 +163,8 @@ workflows:
           filters:
             tags:
               only: /.*/
+            branches:
+              ignore: /pull\/.*/
       - watch:
           context: Honeycomb Secrets for Public Repos
           requires:
@@ -145,6 +172,8 @@ workflows:
           filters:
             tags:
               only: /.*/
+            branches:
+              ignore: /pull\/.*/
       - test:
           context: Honeycomb Secrets for Public Repos
           requires:
@@ -152,6 +181,8 @@ workflows:
           filters:
             tags:
               only: /.*/
+            branches:
+              ignore: /pull\/.*/
       - build:
           context: Honeycomb Secrets for Public Repos
           requires:
@@ -159,6 +190,8 @@ workflows:
           filters:
             tags:
               only: /.*/
+            branches:
+              ignore: /pull\/.*/
       - smoketest:
           context: Honeycomb Secrets for Public Repos
           requires:
@@ -166,6 +199,8 @@ workflows:
           filters:
             tags:
               only: /.*/
+            branches:
+              ignore: /pull\/.*/
       - publish:
           context: Honeycomb Secrets for Public Repos
           requires:
