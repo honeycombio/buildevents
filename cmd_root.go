@@ -56,6 +56,8 @@ about your Continuous Integration builds.`,
 			prov = providerAzurePipelines
 		} else if _, present := os.LookupEnv("GITHUB_ACTIONS"); present {
 			prov = providerGitHubActions
+		} else if _, present := os.LookupEnv("BITBUCKET_BUILD_NUMBER"); present {
+			prov = providerBitbucketPipelines
 		}
 	}
 	if prov != "" {
