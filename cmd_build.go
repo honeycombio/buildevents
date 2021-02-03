@@ -31,7 +31,6 @@ a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
-			arbitraryFields(*filename, ev)
 
 			ev.Add(map[string]interface{}{
 				"service_name":  "build",
@@ -41,6 +40,8 @@ a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 				"duration_ms":   time.Since(startTime) / time.Millisecond,
 			})
 			ev.Timestamp = startTime
+
+			arbitraryFields(*filename, ev)
 
 			url, err := buildURL(cfg, traceID, startTime.Unix())
 			if err != nil {

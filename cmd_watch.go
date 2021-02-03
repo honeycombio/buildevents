@@ -56,7 +56,6 @@ build with the appropriate timers.`,
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
-			arbitraryFields(*filename, ev) // TODO: consider - move this until after the watch timeout??
 
 			ok, startTime, endTime, err := waitCircle(context.Background(), *wcfg)
 			if err != nil {
@@ -77,6 +76,8 @@ build with the appropriate timers.`,
 				"duration_ms":   endTime.Sub(startTime) / time.Millisecond,
 			})
 			ev.Timestamp = startTime
+
+			arbitraryFields(*filename, ev) // TODO: consider - move this until after the watch timeout??
 
 			url, err := buildURL(cfg, traceID, startTime.Unix())
 			if err != nil {
