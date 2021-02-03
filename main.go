@@ -17,6 +17,7 @@ const (
 	providerGoogleCloudBuild = "Google-Cloud-Build"
 	providerAzurePipelines   = "Azure-Piplines"
 	providerGitHubActions    = "GitHub-Actions"
+	providerBitbucketPipelines = "Bitbucket-Pipelines"
 )
 
 func main() {
