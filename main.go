@@ -15,7 +15,7 @@ const (
 	providerGitLab           = "GitLab-CI"
 	providerJenkinsX         = "Jenkins-X"
 	providerGoogleCloudBuild = "Google-Cloud-Build"
-	providerAzurePipelines   = "Azure-Piplines"
+	providerAzurePipelines   = "Azure-Pipelines"
 	providerGitHubActions    = "GitHub-Actions"
 	providerBitbucketPipelines = "Bitbucket-Pipelines"
 )
