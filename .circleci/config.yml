@@ -126,45 +126,17 @@ jobs:
                   echo "about to publish to tag ${CIRCLE_TAG}"
                   tar -xvf artifacts/buildevents.tar
                   ls -l *
-                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-386
-                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-amd64
-                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-darwin-amd64
+                  ghr --draft -n ${CIRCLE_TAG} -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-386
+                  ghr --draft -n ${CIRCLE_TAG} -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-amd64
+                  ghr --draft -n ${CIRCLE_TAG} -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-darwin-amd64
 
 workflows:
-  build_forked:
-    jobs:
-      - setup:
-          filters:
-            branches:
-              only: /pull\/.*/
-      - test:
-          requires:
-            - setup
-          filters:
-            branches:
-              only: /pull\/.*/
-      - build:
-          requires:
-            - test
-          filters:
-            branches:
-              only: /pull\/.*/
-      - smoketest:
-          requires:
-            - build
-          filters:
-            branches:
-              only: /pull\/.*/
-
   build:
     jobs:
       - setup:
-          context: Honeycomb Secrets for Public Repos
           filters:
             tags:
               only: /.*/
-            branches:
-              ignore: /pull\/.*/
       - watch:
           context: Honeycomb Secrets for Public Repos
           requires:
@@ -175,32 +147,23 @@ workflows:
             branches:
               ignore: /pull\/.*/
       - test:
-          context: Honeycomb Secrets for Public Repos
           requires:
             - setup
           filters:
             tags:
               only: /.*/
-            branches:
-              ignore: /pull\/.*/
       - build:
-          context: Honeycomb Secrets for Public Repos
           requires:
             - test
           filters:
             tags:
               only: /.*/
-            branches:
-              ignore: /pull\/.*/
       - smoketest:
-          context: Honeycomb Secrets for Public Repos
           requires:
             - build
           filters:
             tags:
               only: /.*/
-            branches:
-              ignore: /pull\/.*/
       - publish:
           context: Honeycomb Secrets for Public Repos
           requires:
