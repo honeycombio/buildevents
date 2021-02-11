@@ -126,6 +126,22 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"BITBUCKET_PR_ID":   				"pr_id",
 			"BITBUCKET_STEP_TRIGGERER_UUID": 	"build_user",
 		}
+
+	case "buildkite":
+		envVars = map[string]string{
+			"BUILDKITE_LABEL":                    "build_name",
+			"BUILDKITE_BRANCH":                   "branch",
+			"BUILDKITE_REPO":                     "repo",
+			"BUILDKITE_PULL_REQUEST":             "pr_number",
+			"BUILDKITE_PULL_REQUEST_BASE_BRANCH": "pr_branch",
+			"BUILDKITE_PULL_REQUEST_REPO":        "pr_repo",
+			"BUILDKITE_BUILD_ID":                 "build_id",
+			"BUILDKITE_BUILD_NUMBER":             "build_number",
+			"BUILDKITE_BUILD_AUTHOR",             "build_author",
+			"BUILDKITE_BUILD_CREATOR",            "build_creator",
+			"BUILDKITE_JOB_ID":                   "job_id",
+		}
+
 	}
 	for envVar, fieldName := range envVars {
 		if val, ok := os.LookupEnv(envVar); ok {

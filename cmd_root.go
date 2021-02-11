@@ -58,6 +58,8 @@ about your Continuous Integration builds.`,
 			prov = providerGitHubActions
 		} else if _, present := os.LookupEnv("BITBUCKET_BUILD_NUMBER"); present {
 			prov = providerBitbucketPipelines
+		} else if _, present := os.LookupEnv("BUILDKITE"); present {
+			prov = providerBuildkite
 		}
 	}
 	if prov != "" {

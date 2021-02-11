@@ -18,6 +18,7 @@ const (
 	providerAzurePipelines   = "Azure-Pipelines"
 	providerGitHubActions    = "GitHub-Actions"
 	providerBitbucketPipelines = "Bitbucket-Pipelines"
+	providerBuildkite        = "Buildkite"
 )
 
 func main() {
