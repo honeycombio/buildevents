@@ -24,7 +24,7 @@ The cmd mode invokes an individual command that is part of the build, such as
 running DB migrations or running a specific test suite. It must be able to be
 expressed as a single shell command - either a process like "go test" or a
 shell script. The command to run is the final argument to buildevents and
-will be launched via "bash -c" using "exec".`,
+will be launched via "bash -ic" using "exec".`,
 		Args: composer(
 			cobra.MinimumNArgs(4),
 			func(cmd *cobra.Command, args []string) error {
@@ -109,9 +109,9 @@ will be launched via "bash -c" using "exec".`,
 
 func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool) error {
 	if quiet == false {
-		fmt.Println("running /bin/bash -c", subcmd)
+		fmt.Println("running /bin/bash -ic", subcmd)
 	}
-	cmd := exec.Command("/bin/bash", "-c", subcmd)
+	cmd := exec.Command("/bin/bash", "-ic", subcmd)
 
 	cmd.Env = append(os.Environ(),
 		"HONEYCOMB_TRACE="+propagation.MarshalHoneycombTraceContext(prop),
