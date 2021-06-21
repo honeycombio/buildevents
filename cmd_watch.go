@@ -17,8 +17,12 @@ import (
 
 // numChecks is the number of times to verify that we're finished before
 // declaring success in case we enter a transient state with blocked jobs that
-// really will start soon.
-const numChecks = 3
+// really will start soon. This can be long - wait for up to 2 minutes (5sec *
+// 24 = 120sec). It's ok for this to be long because it only covers the time
+// when there are existing jobs that are not going to run. Most builds finish
+// with all jobs finishing, so this timer will not caused delayed builds in
+// those cases.
+const numChecks = 24
 
 type watchConfig struct {
 	timeoutMin int
@@ -45,19 +49,18 @@ build with the appropriate timers.`,
 				return nil
 			},
 		),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			traceID := strings.TrimSpace(args[0])
 
 			ev := createEvent(cfg, *ciProvider, traceID)
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
-			arbitraryFields(*filename, ev) // TODO: consider - move this until after the watch timeout??
 
-			ok, startTime, err := waitCircle(context.Background(), *wcfg)
+			ok, startTime, endTime, err := waitCircle(context.Background(), *wcfg)
 			if err != nil {
 				fmt.Printf("buildevents - Error detected: %s\n", err.Error())
-				os.Exit(1)
+				return err
 			}
 
 			status := "failed"
@@ -70,16 +73,20 @@ build with the appropriate timers.`,
 				"trace.span_id": traceID,
 				"name":          "watch " + traceID,
 				"status":        status,
-				"duration_ms":   time.Since(startTime) / time.Millisecond,
+				"duration_ms":   endTime.Sub(startTime) / time.Millisecond,
 			})
 			ev.Timestamp = startTime
+
+			arbitraryFields(*filename, ev) // TODO: consider - move this until after the watch timeout??
 
 			url, err := buildURL(cfg, traceID, startTime.Unix())
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Unable to create trace URL: %v\n", err)
-				return
+				return err
 			}
 			fmt.Println(url)
+
+			return nil
 		},
 	}
 
@@ -111,21 +118,23 @@ build with the appropriate timers.`,
 
 // waitCircle polls the CircleCI API checking for the status of this workflow
 // and the jobs it contains. It returns whether the workflow build succeeded,
-// the time it started. The err returned is for errors polling the CircleCI API,
-// not errors in the build itself.
-func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error) {
+// the time it started, and the time it ended (which will be either nowish or
+// sometime in the past if we timed out). The err returned is for errors polling
+// the CircleCI API, not errors in the build itself.
+func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, ended time.Time, err error) {
 	// we need a token to query anything; give a helpful error if we have no token
 	if cfg.circleKey == "" {
-		return false, time.Now(), fmt.Errorf("circle token required to poll the API")
+		return false, time.Now(), time.Now().Add(time.Second), fmt.Errorf("circle token required to poll the API")
 	}
 	client := &circleci.Client{Token: cfg.circleKey}
 	wf, err := client.GetWorkflowV2(cfg.workflowID)
 	if err != nil {
-		return false, time.Now(), err
+		return false, time.Now(), time.Now().Add(time.Second), err
 	}
-	start := wf.CreatedAt
-	var passed bool
+	started = wf.CreatedAt
+	ended = time.Now() // set a default in case we early exit
 
+	// set up cancellation timeout based on the configured timout duration
 	done := make(chan struct{})
 	ctx, cxl := context.WithTimeout(parent, time.Duration(cfg.timeoutMin)*time.Minute)
 	defer cxl()
@@ -133,7 +142,8 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 	// sometimes there's a gap between when a job finishes and the next one starts.
 	// In that case there are no jobs running and some jobs blocked that could
 	// still run. If we think the build has passed and finished, let's give it a
-	// buffer to spin up new jobs before really considering it done.
+	// buffer to spin up new jobs before really considering it done. This buffer
+	// will check for up to 2 minutes
 	checksLeft := numChecks + 1 // +1 because we decrement at the beginning of the loop
 
 	go func() {
@@ -145,16 +155,34 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 			case <-ctx.Done():
 				// TODO add the fact that it timed out to the trace to say why it failed
 				fmt.Fprintf(os.Stderr, "Timeout reached waiting for the workflow to finish\n")
+				ended = time.Now()
 				return
 			default:
 			}
 
-			finished, failed, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
-			if finished {
+			anyRunning, anyFailed, anyBlocked, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
+			if !anyRunning {
+				// if this is the first time we think we're finished store the timestamp
+				if checksLeft >= numChecks {
+					ended = time.Now()
+				}
+
+				if !anyBlocked && err == nil {
+					// we are legit done.
+					passed = !anyFailed
+					if passed {
+						fmt.Println("Build passed!")
+					} else {
+						fmt.Println("Build failed!")
+					}
+					return
+				}
+
+				// ok, carry on
 				checksLeft--
 				if checksLeft <= 0 {
 					// we're done checking.
-					passed = !failed
+					passed = !anyFailed
 					if passed {
 						fmt.Println("Build passed!")
 					} else {
@@ -168,9 +196,10 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 					fmt.Printf("Querying the CirlceCI API failed with %s; trying %d more times before giving up.\n", err.Error(), checksLeft)
 					continue
 				}
-				if failed {
-					// don't bother rechecking if the job has failed but didn't error
+				if anyFailed {
+					// don't bother rechecking if a job has failed
 					fmt.Printf("Build failed!\n")
+					ended = time.Now()
 					return
 				}
 				// yay looks like maybe we're done?
@@ -182,51 +211,57 @@ func waitCircle(parent context.Context, cfg watchConfig) (bool, time.Time, error
 			// finished.
 			passed = false
 			checksLeft = numChecks
-
 		}
 	}()
 
 	<-done
-	return passed, start, nil
+	return passed, started, ended, nil
 }
 
 // evalWorkflow looks at the CircleCI API for the list of jobs in this workflow
 // and decides whether the build has finished and if finished, whether it
 // failed. If an error is returned, it represents an error talking to the
 // CircleCI API, not an error with the workflow.
-func evalWorkflow(client *circleci.Client, wfID string, jobName string) (finished bool, failed bool, err error) {
+func evalWorkflow(client *circleci.Client, wfID string, jobName string) (anyRunning bool, anyFailed bool, anyBlocked bool, err error) {
 	fmt.Printf("%s: polling for jobs: ", time.Now().Format(time.StampMilli))
 	wfJobs, err := getJobs(client, wfID)
 	if err != nil {
 		fmt.Printf("error polling: %s\n", err.Error())
-		return true, true, err
+		return true, true, false, err
 	}
 	fmt.Println(summarizeJobList(wfJobs))
 
+	anyRunning = false
+	anyBlocked = false
 	for _, job := range wfJobs {
-		// always count ourself as finished so we don't wait for ourself
+		// skip ourself so we don't wait if we're the only job running
 		if job.Name == jobName {
 			continue
 		}
 
 		switch job.Status {
-		case "success", "blocked":
-			// success means it passed
+		case "success":
+			// success means it finished and passed, don't keep track of it
+			continue
+		case "blocked":
 			// blocked means it can't yet run, but that could be because either
-			// it's waiting on a running job or
+			// it's waiting on a running job, depends on a failed job, or
 			// it's not configured to run this build (because of a tag or something)
+			anyBlocked = true
 			continue
 		case "queued":
-			return false, failed, nil
+			// queued means a job is due to start running soon, so we consider it running
+			// already.
+			anyRunning = true
 		case "failed":
-			failed = true
+			anyFailed = true
 			continue
 		case "running":
-			// We can stop short as soon as we find an unfinished job
-			return false, failed, nil
+			anyRunning = true
 		}
 	}
-	return true, failed, nil
+
+	return anyRunning, anyFailed, anyBlocked, nil
 }
 
 // getJobs queries the CircleCI API for a list of all jobs in the current workflow
@@ -263,7 +298,7 @@ func summarizeJobList(wfJobs []*circleci.WorkflowJob) string {
 
 	// sort the statuses present to print them in a consistent order
 	sortedStatusList := make([]string, 0, len(countByStatus))
-	for key, _ := range countByStatus {
+	for key := range countByStatus {
 		sortedStatusList = append(sortedStatusList, key)
 	}
 	sort.Strings(sortedStatusList)

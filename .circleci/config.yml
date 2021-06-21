@@ -1,13 +1,13 @@
 version: 2.1
 
 orbs:
-  buildevents: honeycombio/buildevents@0.0.3
+  buildevents: honeycombio/buildevents@0.2.3
 
 executors:
   linuxgo:
     working_directory: /go/src/github.com/honeycombio/buildevents
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.15.2
 
 commands:
   go-build:
@@ -20,14 +20,16 @@ commands:
       arch:
         description: Target architecture
         type: enum
-        enum: ["386", "amd64"]
+        enum: ["386", "amd64", "arm64"]
         default: "amd64"
     steps:
       ## method 1 to send a command span
       ## the raw buildevents binary is available in the $PATH but requires more arguments
+      ## don't use CGO so that this binary can run in alpine-linux containers
       - run: |
           GOOS=<< parameters.os >> \
           GOARCH=<< parameters.arch >> \
+          CGO_ENABLED=0 \
           buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID go_build -- \
           go build -ldflags "-X main.Version=${CIRCLE_TAG}" \
           -o $GOPATH/bin/buildevents-<< parameters.os >>-<< parameters.arch >> \
@@ -38,6 +40,11 @@ jobs:
     executor: linuxgo
     steps:
       - buildevents/start_trace
+  watch:
+    executor: linuxgo
+    steps:
+      - buildevents/watch_build_and_finish
+
   test:
     executor: linuxgo
     steps:
@@ -64,7 +71,18 @@ jobs:
             - go-build:
                 os: darwin
                 arch: amd64
+            - go-build:
+                os: linux
+                arch: arm64
             - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents-* artifacts/
+
+            ## just to serve as an example, let's add the size of the artifacts built to our trace
+            - run: echo "size=$(du -sb artifacts | cut -f 1)" >> $BASH_ENV
+            - buildevents/add_context:
+                field_name: artifacts_size_bytes
+                field_value: $size
+
+            ## ok, carry on and upload the artifacts
             - run: tar -cvf artifacts/buildevents.tar artifacts/buildevents-*
             - persist_to_workspace:
                 root: artifacts
@@ -72,26 +90,49 @@ jobs:
                   - buildevents.tar
             - store_artifacts:
                 path: artifacts/
+
+  smoketest:
+    executor: linuxgo
+    steps:
+      - buildevents/with_job_span:
+          steps:
+            - attach_workspace:
+                at: artifacts
+            - run: tar -xvf artifacts/buildevents.tar
+            - run:
+                name: "Subcommand success = success"
+                command: |
+                  result=$(artifacts/buildevents-linux-amd64 cmd buildId stepId name -- true >/dev/null && echo "worked")
+                  if [ "$result" != "worked" ]; then
+                    exit 1
+                  fi
+            - run:
+                name: "Subcommand failure = failure"
+                command: |
+                  result=$(artifacts/buildevents-linux-amd64 cmd buildId stepId name -- false > /dev/null || echo "worked" )
+                  if [ "$result" != "worked" ]; then
+                    exit 1
+                  fi
+
+
   publish:
     docker:
       - image: cibuilds/github:0.12.1
     steps:
-      - attach_workspace:
-          at: artifacts
-      - run:
-          name: "Publish Release on GitHub"
-          command: |
-            echo "about to publish to tag ${CIRCLE_TAG}"
-            tar -xvf artifacts/buildevents.tar
-            ls -l *
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-386
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-amd64
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-darwin-amd64
-  final:
-    executor: linuxgo
-    steps:
-      - buildevents/finish_trace:
-          result: success
+      - buildevents/with_job_span:
+          steps:
+            - attach_workspace:
+                at: artifacts
+            - run:
+                name: "Publish Release on GitHub"
+                command: |
+                  echo "about to publish to tag ${CIRCLE_TAG}"
+                  tar -xvf artifacts/buildevents.tar
+                  ls -l *
+                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-386
+                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-amd64
+                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-linux-arm64
+                  ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-darwin-amd64
 
 workflows:
   build:
@@ -100,6 +141,15 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - watch:
+          context: Honeycomb Secrets for Public Repos
+          requires:
+            - setup
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /pull\/.*/
       - test:
           requires:
             - setup
@@ -112,18 +162,18 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - publish:
-          requires:
-            - build
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - final:
+      - smoketest:
           requires:
             - build
           filters:
             tags:
               only: /.*/
-
+      - publish:
+          context: Honeycomb Secrets for Public Repos
+          requires:
+            - smoketest
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/

@@ -75,6 +75,7 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"CI_MERGE_REQUEST_SOURCE_PROJECT_PATH": "pr_repo",
 			"CI_PROJECT_URL":                       "repo",
 		}
+
 	case "buildkite", "buildkiteci", "build-kite":
 		envVars = map[string]string{
 			"BUILDKITE_BRANCH":            "branch",
@@ -83,6 +84,56 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"BUILDKITE_PULL_REQUEST":      "pr_number",
 			"BUILDKITE_PULL_REQUEST_REPO": "pr_repo",
 			"BUILDKITE_REPO":              "repo",
+		}
+	case "jenkinsx", "jenkins-x":
+		envVars = map[string]string{
+			"BRANCH_NAME":  "branch",
+			"BUILD_NUMBER": "build_num",
+			"PULL_NUMBER":  "pr_number",
+			"REPO_NAME":    "repo",
+		}
+
+	case "google-cloud-build", "cloud-build", "gcb":
+		envVars = map[string]string{
+			"BRANCH_NAME": "branch",
+			"BUILD_ID":    "build_num",
+			"HEAD_BRANCH": "pr_branch",
+			"REPO_OWNER":  "pr_user",
+			"REPO_NAME":   "repo",
+		}
+
+	case "azure-pipelines", "azure-devops", "vsts", "tfs":
+		envVars = map[string]string{
+			"BUILD_SOURCEBRANCHNAME":               "branch",
+			"BUILD_BUILDID":                        "build_id",
+			"BUILD_BUILDNUMBER":                    "build_number",
+			"SYSTEM_JOBDISPLAYNAME":                "job_name",
+			"SYSTEM_STAGEDISPLAYNAME":              "stage_name",
+			"SYSTEM_PULLREQUEST_PULLREQUESTID":     "pr_id",
+			"SYSTEM_PULLREQUEST_PULLREQUESTNUMBER": "pr_number",
+			"SYSTEM_PULLREQUEST_SOURCEBRANCH":      "pr_branch",
+			"BUILD_REQUESTEDFOR":                   "build_user",
+			"BUILD_REPOSITORY_URI":                 "repo",
+		}
+
+	case "github-actions", "githubactions", "github":
+		envVars = map[string]string{
+			"GITHUB_REF":        "branch",
+			"GITHUB_RUN_ID":     "build_num",
+			"GITHUB_WORKFLOW":   "workflow_name",
+			"GITHUB_HEAD_REF":   "pr_branch",
+			"GITHUB_ACTOR":      "pr_user",
+			"GITHUB_REPOSITORY": "repo",
+		}
+
+	case "bitbucket-pipelines", "bitbucketpipelines", "bitbucket":
+		envVars = map[string]string{
+			"BITBUCKET_BRANCH":              "branch",
+			"BITBUCKET_PIPELINE_UUID":       "pipeline_id",
+			"BITBUCKET_BUILD_NUMBER":        "build_num",
+			"BITBUCKET_REPO_FULL_NAME":      "repo",
+			"BITBUCKET_PR_ID":               "pr_id",
+			"BITBUCKET_STEP_TRIGGERER_UUID": "build_user",
 		}
 	}
 	for envVar, fieldName := range envVars {
@@ -145,7 +196,7 @@ func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("unable to infer UI host: %s", uiHost)
 	}
-	u.Path = path.Join(teamName, "datasets", cfg.Dataset, "trace")
+	u.Path = path.Join(teamName, "datasets", strings.Replace(cfg.Dataset, " ", "-", -1), "trace")
 	endTime := time.Now().Add(10 * time.Minute).Unix()
 	return fmt.Sprintf(
 		"%s?trace_id=%s&trace_start_ts=%d&trace_end_ts=%d",

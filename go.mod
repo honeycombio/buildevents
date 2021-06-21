@@ -1,5 +1,7 @@
 module github.com/honeycombio/buildevents
 
+go 1.15
+
 require (
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/facebookgo/ensure v0.0.0-20160127193407-b4ab57deab51 // indirect
@@ -15,4 +17,4 @@ require (
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 )
 
-replace github.com/jszwedko/go-circleci => github.com/maplebed/go-circleci v0.0.0-20190624145132-b886dbac393
+replace github.com/jszwedko/go-circleci => github.com/maplebed/go-circleci v0.0.0-20191121000249-089ef54587e5

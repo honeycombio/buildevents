@@ -10,10 +10,15 @@ import (
 var Version = "dev"
 
 const (
-	providerTravis    = "Travis-CI"
-	providerCircle    = "CircleCI"
-	providerGitLab    = "GitLab-CI"
-	providerBuildkite = "Buildkite"
+	providerTravis             = "Travis-CI"
+	providerCircle             = "CircleCI"
+	providerGitLab             = "GitLab-CI"
+	providerBuildkite          = "Buildkite"
+	providerJenkinsX           = "Jenkins-X"
+	providerGoogleCloudBuild   = "Google-Cloud-Build"
+	providerAzurePipelines     = "Azure-Pipelines"
+	providerGitHubActions      = "GitHub-Actions"
+	providerBitbucketPipelines = "Bitbucket-Pipelines"
 )
 
 func main() {
@@ -35,6 +40,7 @@ func main() {
 
 	// Do the work
 	if err := root.Execute(); err != nil {
+		libhoney.Close()
 		os.Exit(1)
 	}
 }

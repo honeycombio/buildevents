@@ -20,7 +20,7 @@ one of "install", "before_script", "script", and so on. In CircleCI, this
 most closely maps to a single job. It should be run at the end of the step.`,
 		Args:                  cobra.ExactArgs(4),
 		DisableFlagsInUseLine: true,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			traceID := strings.TrimSpace(args[0])
 			stepID := strings.TrimSpace(args[1])
 			startTime := parseUnix(strings.TrimSpace(args[2]))
@@ -30,7 +30,6 @@ most closely maps to a single job. It should be run at the end of the step.`,
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
-			arbitraryFields(*filename, ev)
 
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": traceID,
@@ -40,6 +39,10 @@ most closely maps to a single job. It should be run at the end of the step.`,
 				"duration_ms":     time.Since(startTime) / time.Millisecond,
 			})
 			ev.Timestamp = startTime
+
+			arbitraryFields(*filename, ev)
+
+			return nil
 		},
 	}
 	return stepCmd

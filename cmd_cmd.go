@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	propagation "github.com/honeycombio/beeline-go/propagation"
 	libhoney "github.com/honeycombio/libhoney-go"
 )
 
@@ -35,10 +35,16 @@ will be launched via "bash -c" using "exec".`,
 			},
 		),
 		DisableFlagsInUseLine: true,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Don't show usage if RunE returns an error. This set in RunE
+			// instead of when we instantiate the cmd so we don't suppress usage
+			// for errors from Args.
+			cmd.SilenceUsage = true
+
 			traceID := strings.TrimSpace(args[0])
 			stepID := strings.TrimSpace(args[1])
 			name := strings.TrimSpace(args[2])
+			quiet, _ := cmd.Flags().GetBool("quiet")
 
 			var quoted []string
 			for _, s := range args[3:] {
@@ -50,24 +56,39 @@ will be launched via "bash -c" using "exec".`,
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
-			arbitraryFields(*filename, ev)
 
 			spanBytes := make([]byte, 16)
 			rand.Read(spanBytes)
 
 			start := time.Now()
-			err := runCommand(subcmd)
+
+			// copy out the current set of fields to avoid later modification
+			localFields := map[string]interface{}{}
+			for k, v := range ev.Fields() {
+				localFields[k] = v
+			}
+			var spanID = fmt.Sprintf("%x", spanBytes)
+			prop := &propagation.PropagationContext{
+				TraceID:      traceID,
+				ParentID:     spanID,
+				TraceContext: localFields,
+			}
+			err := runCommand(subcmd, prop, quiet)
 			dur := time.Since(start)
 
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": stepID,
-				"trace.span_id":   fmt.Sprintf("%x", spanBytes),
+				"trace.span_id":   spanID,
 				"service_name":    "cmd",
 				"name":            name,
 				"duration_ms":     dur / time.Millisecond,
 				"cmd":             subcmd,
 			})
 			ev.Timestamp = start
+
+			// Annotate with arbitrary fields after the command runs
+			// this way we can consume a file if the command itself generated one
+			arbitraryFields(*filename, ev)
 
 			if err == nil {
 				ev.AddField("status", "success")
@@ -77,35 +98,27 @@ will be launched via "bash -c" using "exec".`,
 					"failure_reason": err.Error(),
 				})
 			}
+
+			return err
 		},
 	}
+	var quiet bool
+	execCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "silence non-cmd output")
 	return execCmd
 }
 
-func runCommand(subcmd string) error {
-	fmt.Println("running /bin/bash -c", subcmd)
+func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool) error {
+	if quiet == false {
+		fmt.Println("running /bin/bash -c", subcmd)
+	}
 	cmd := exec.Command("/bin/bash", "-c", subcmd)
 
-	outReader, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	errReader, err := cmd.StderrPipe()
-	if err != nil {
-		return err
-	}
+	cmd.Env = append(os.Environ(),
+		"HONEYCOMB_TRACE="+propagation.MarshalHoneycombTraceContext(prop),
+	)
 
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	go func() {
-		io.Copy(os.Stdout, outReader)
-	}()
-	go func() {
-		io.Copy(os.Stderr, errReader)
-	}()
-
-	return cmd.Wait()
+	return cmd.Run()
 }

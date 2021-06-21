@@ -23,12 +23,26 @@ If you have a working go environment in your build, the easiest way to install `
 go get github.com/honeycombio/buildevents/
 ```
 
-There are also built binaries for linux and macOS hosted on Github and available under the [releases](https://github.com/honeycombio/buildevents/releases) tab. The following two commands will down load and make executable the github-hosted binary.
+There are also built binaries for linux and macOS hosted on Github and available under the [releases](https://github.com/honeycombio/buildevents/releases) tab. The following commands will download and make executable the github-hosted binary.
 
-**linux:**
+**linux, 32-bit x86:**
+
+```
+curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-linux-386
+chmod 755 buildevents
+```
+
+**linux, 64-bit x86:**
 
 ```
 curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-linux-amd64
+chmod 755 buildevents
+```
+
+**linux, arm64:**
+
+```
+curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-linux-arm64
 chmod 755 buildevents
 ```
 
@@ -51,7 +65,7 @@ There are several other optional enviornment variables that will adjust the beha
 
 * `BUILDEVENT_DATASET` sets the Honeycomb dataset to use. The default is `buildevents`
 * `BUILDEVENT_APIHOST` sets the API target for sending Honeycomb traces.  Default is `https://api.honeycomb.io/`
-* `BUILDEVENT_CIPROVIDER` if set, a field in all spans named `ci_provider` will contain this value. If unset, `buildevents` will inspect the environment to try and detect Travis-CI, CircleCI, GitLab-CI, and Buildkite (by looking for the environment variables `TRAVIS`, `CIRCLECI`, `GITLAB_CI`, and `BUILDKITE` respectively). If either Travis-CI, CircleCI, GitLab-CI, or Buildkite are detected, `buildevents` will add a number of additional fields from the environment, such as the branch name, the repository, the build number, and so on. If detection fails and you are on Travis-CI, CircleCI, or GitLab-CI, setting this to `Travis-CI`, `CircleCI`, `GitLab-CI`, or `Buildkite` precisely will also trigger the automatic field additions.
+* `BUILDEVENT_CIPROVIDER` if set, a field in all spans named `ci_provider` will contain this value. If unset, `buildevents` will inspect the environment to try and detect Travis-CI, CircleCI, GitLab-CI, Buildkite, Jenkins-X, Google-Cloud-Build and Bitbucket-Pipelines (by looking for the environment variables `TRAVIS`, `CIRCLECI`, `BUILDKITE`, `GITLAB_CI`, `JENKINS-X`, `GOOGLE-CLOUD-BUILD` and `BITBUCKET_BUILD_NUMBER` respectively). If either Travis-CI, CircleCI, GitLab-CI, Buildkite, Jenkins-X, Google-Cloud-Build or Bitbucket-Pipelines are detected, `buildevents` will add a number of additional fields from the environment, such as the branch name, the repository, the build number, and so on. If detection fails and you are on Travis-CI, CircleCI, GitLab-CI, Jenkins-X, Google-Cloud-Build or Bitbucket-Pipelines setting this to `Travis-CI`, `CircleCI`, `Buildkite`, `GitLab-CI`, `Jenkins-X`, `Google-Cloud-Build`, or `Bitbucket-Pipelines` precisely will also trigger the automatic field additions.
 * `BUILDEVENT_FILE` if set, is used as the path of a text file holding arbitrary key=val pairs (multi-line-capable, logfmt style) that will be added to the Honeycomb event.
 
 ## Trace Identifier
@@ -64,6 +78,10 @@ The Build ID may already be available in the environment for your build:
 * CircleCI: `CIRCLE_BUILD_NUM` (the build number for this job if you're not using workflows)
 * GitLab-CI: `CI_PIPELINE_ID`
 * Buildkite: `BUILDKITE_BUILD_ID`
+* JenkinsX: `JENKINSX_BUILD_NUMBER`
+* Google-Cloud-Build: `BUILD_ID`
+* GitHub Actions: `GITHUB_RUN_ID`
+* Bitbucket Pipelines: `BITBUCKET_BUILD_NUMBER`
 
 # Use
 
@@ -131,7 +149,7 @@ before_script:
   - STEP_START=$(date +%s)
   - STEP_SPAN_ID=$(echo before_script | sum | cut -f 1 -d \ )
   - ... do stuff
-  - buildevents travis-ci step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START before_script
+  - buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START before_script
 ```
 
 CircleCI example:
@@ -168,11 +186,41 @@ jobs:
       - run: $GOPATH/bin/buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID go-test -- go test -timeout 2m -mod vendor ./...
 ```
 
+## Attaching more traces from your build and test process
+
+Every command running through `buildevents cmd` will receive a `HONEYCOMB_TRACE` environment variable that contains a marshalled trace propagation context. This can be used to connect more spans to this trace.
+
+Ruby Beeline example:
+```ruby
+# at the very start of the command
+# establish a command-level span, linking to the buildevent
+process_span = Honeycomb.start_span(name: File.basename($PROGRAM_NAME), serialized_trace: ENV['HONEYCOMB_TRACE'])
+Honeycomb.add_field_to_trace('process.full_name', $PROGRAM_NAME)
+
+# if you're not passing sensitive information through CLI args, enable this for more insights.
+#Honeycomb.add_field_to_trace('process.args', ARGV)
+
+# override the HONEYCOMB_TRACE for sub-processes
+ENV['HONEYCOMB_TRACE'] = process_span.to_trace_header
+
+# ensure that the process_span is sent before the process terminates
+at_exit do
+  if $ERROR_INFO&.is_a?(SystemExit)
+    process_span.add_field('process.exit_code', $ERROR_INFO.status)
+  elsif $ERROR_INFO
+    process_span.add_field('process.exit_code', $ERROR_INFO.class.name)
+  else
+    process_span.add_field('process.exit_code', 'unknown')
+  end
+  process_span.send
+end
+```
+
 # Putting it all together
 
 We've covered each of the three modes in which `buildevents` is invoked and shown abbreviated examples for each one. Now it's time to look at an entire config to see how they interact: installation, running a build, and finally reporting the whole thing.
 
-In both of these examples, the `BUILDEVENTS_APIKEY` should be set in the protected environment variable section of the CI config so that your API key is not checked in to your source.
+In both of these examples, the `BUILDEVENT_APIKEY` should be set in the protected environment variable section of the CI config so that your API key is not checked in to your source.
 
 Travis-CI example:
 ```yaml
@@ -183,7 +231,7 @@ env:
 install:
   - STEP_START=$(date +%s)
   - STEP_SPAN_ID=$(echo install | sum | cut -f 1 -d \ )
-  - curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents
+  - curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-linux-amd64
   - chmod 755 buildevents
   - # ... any other setup necessary for your build
   - ./buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START install
@@ -196,7 +244,7 @@ script:
   - ./buildevents step $TRAVIS_BUILD_ID $STEP_SPAN_ID $STEP_START script
 
 after_failure:
-  - ./buildevents travis-ci build $TRAVIS_BUILD_ID $BUILD_START failure
+  - ./buildevents build $TRAVIS_BUILD_ID $BUILD_START failure
 
 after_success:
   - STEP_START=$(date +%s)
@@ -277,6 +325,81 @@ workflows:
       - build:
           requires:
             - test
+```
+
+GitLab CI example:
+```yaml
+# Not a huge fan of YAML anchors, but it's the easiest way to
+# extend the scripts in jobs where you need other before_script and after_script
+.default_before_script: &default_before_script
+  - STEP_START=$(date +%s)
+  - STEP_SPAN_ID=$(echo $CI_JOB_NAME | sum | cut -f 1 -d \ )
+  - echo "export STEP_START=$STEP_START" >> buildevents/env
+  - echo "export STEP_SPAN_ID=$STEP_SPAN_ID" >> buildevents/env
+  - echo "export PATH=\"$PATH:buildevents/bin/\"" >> buildevents/env
+  - source buildevents/env
+  - cat buildevents/env
+
+.default_after_script: &default_after_script
+  - source buildevents/env
+  - cat buildevents/env
+  - buildevents step $CI_PIPELINE_ID $STEP_SPAN_ID $STEP_START $CI_JOB_NAME
+
+default:
+  image: golang:latest
+  before_script:
+    - *default_before_script
+  after_script:
+    - *default_after_script
+
+stages:
+  # .pre and .post are guaranteed to be first and last run jobs
+  # https://docs.gitlab.com/ee/ci/yaml/README.html#pre-and-post
+  - .pre
+  - build
+  - test
+  - .post
+
+setup:
+  before_script:
+    - mkdir -p buildevents/bin/
+    - *default_before_script
+  script:
+    - curl -L -o main https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-linux-amd64
+    - chmod 755 main
+    - mv main buildevents/bin/buildevents
+    - export BUILD_START=$(date +%s)
+    - echo "export BUILD_START=$(date +%s)" >> buildevents/env
+  artifacts:
+    paths:
+      - buildevents
+  stage: .pre
+
+go_build:
+  script:
+    - buildevents cmd $CI_PIPELINE_ID $STEP_SPAN_ID build -- go install ./...
+  stage: build
+
+go_test:
+  script:
+    - buildevents cmd $CI_PIPELINE_ID $STEP_SPAN_ID build -- go test ./...
+  stage: test
+
+send_success_trace:
+  script:
+    - "traceURL=$(buildevents build $CI_PIPELINE_ID $BUILD_START success)"
+    - "echo \"Honeycomb Trace: $traceURL\""
+  stage: .post
+  rules:
+    - when: on_success
+
+send_failure_trace:
+  script:
+    - "traceURL=$(buildevents build $CI_PIPELINE_ID $BUILD_START failure)"
+    - "echo \"Honeycomb Trace: $traceURL\""
+  stage: .post
+  rules:
+    - when: on_failure
 ```
 
 # Positional argument reference
