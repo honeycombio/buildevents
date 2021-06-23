@@ -48,6 +48,8 @@ about your Continuous Integration builds.`,
 			prov = providerCircle
 		} else if _, present := os.LookupEnv("GITLAB_CI"); present {
 			prov = providerGitLab
+		} else if _, present := os.LookupEnv("BUILDKITE"); present {
+			prov = providerBuildkite
 		} else if _, present := os.LookupEnv("JENKINS-X"); present {
 			prov = providerJenkinsX
 		} else if _, present := os.LookupEnv("GOOGLE-CLOUD-BUILD"); present {

@@ -10,13 +10,14 @@ import (
 var Version = "dev"
 
 const (
-	providerTravis           = "Travis-CI"
-	providerCircle           = "CircleCI"
-	providerGitLab           = "GitLab-CI"
-	providerJenkinsX         = "Jenkins-X"
-	providerGoogleCloudBuild = "Google-Cloud-Build"
-	providerAzurePipelines   = "Azure-Pipelines"
-	providerGitHubActions    = "GitHub-Actions"
+	providerTravis             = "Travis-CI"
+	providerCircle             = "CircleCI"
+	providerGitLab             = "GitLab-CI"
+	providerBuildkite          = "Buildkite"
+	providerJenkinsX           = "Jenkins-X"
+	providerGoogleCloudBuild   = "Google-Cloud-Build"
+	providerAzurePipelines     = "Azure-Pipelines"
+	providerGitHubActions      = "GitHub-Actions"
 	providerBitbucketPipelines = "Bitbucket-Pipelines"
 )
 

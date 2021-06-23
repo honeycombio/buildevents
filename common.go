@@ -76,6 +76,15 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"CI_PROJECT_URL":                       "repo",
 		}
 
+	case "buildkite", "buildkiteci", "build-kite":
+		envVars = map[string]string{
+			"BUILDKITE_BRANCH":            "branch",
+			"BUILDKITE_BUILD_NUMBER":      "build_num",
+			"BUILDKITE_BUILD_URL":         "build_url",
+			"BUILDKITE_PULL_REQUEST":      "pr_number",
+			"BUILDKITE_PULL_REQUEST_REPO": "pr_repo",
+			"BUILDKITE_REPO":              "repo",
+		}
 	case "jenkinsx", "jenkins-x":
 		envVars = map[string]string{
 			"BRANCH_NAME":  "branch",
@@ -119,12 +128,12 @@ func providerInfo(provider string, ev *libhoney.Event) {
 
 	case "bitbucket-pipelines", "bitbucketpipelines", "bitbucket":
 		envVars = map[string]string{
-			"BITBUCKET_BRANCH":		  			"branch",
-			"BITBUCKET_PIPELINE_UUID":			"pipeline_id",
-			"BITBUCKET_BUILD_NUMBER": 			"build_num",
-			"BITBUCKET_REPO_FULL_NAME":   		"repo",
-			"BITBUCKET_PR_ID":   				"pr_id",
-			"BITBUCKET_STEP_TRIGGERER_UUID": 	"build_user",
+			"BITBUCKET_BRANCH":              "branch",
+			"BITBUCKET_PIPELINE_UUID":       "pipeline_id",
+			"BITBUCKET_BUILD_NUMBER":        "build_num",
+			"BITBUCKET_REPO_FULL_NAME":      "repo",
+			"BITBUCKET_PR_ID":               "pr_id",
+			"BITBUCKET_STEP_TRIGGERER_UUID": "build_user",
 		}
 	}
 	for envVar, fieldName := range envVars {
