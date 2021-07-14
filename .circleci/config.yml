@@ -149,7 +149,9 @@ workflows:
             tags:
               only: /.*/
             branches:
-              ignore: /pull\/.*/
+              ignore:
+              - /pull\/.*/
+              - /dependabot\/.*/
       - test:
           requires:
             - setup
