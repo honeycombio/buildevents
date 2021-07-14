@@ -1,5 +1,18 @@
 # buildevents changelog
 
+## 0.6.0 - 2021-07-14
+
+### Added
+
+- Forward stdin. [#99](https://github.com/honeycombio/buildevents/pull/99) | [@shlevy](https://github.com/shlevy)
+
+### Maintenance
+
+- Bump github.com/spf13/cobra from 0.0.5 to 0.0.7 [#102](https://github.com/honeycombio/buildevents/pull/102)
+- Bump github.com/honeycombio/libhoney-go from 1.10.0 to 1.15.3 [#101](https://github.com/honeycombio/buildevents/pull/101)
+- Bump github.com/jszwedko/go-circleci from 0.2.0 to 0.3.0 [#103](https://github.com/honeycombio/buildevents/pull/103)
+- stop watching dependabot builds [#106](https://github.com/honeycombio/buildevents/pull/106)
+
 ## 0.5.2 - 2021-07-08
 
 ### Added
