@@ -119,6 +119,7 @@ func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
 
 	return cmd.Run()
 }
