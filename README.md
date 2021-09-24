@@ -1,6 +1,6 @@
 # buildevents
 
-[![OSS Lifecycle](https://img.shields.io/osslifecycle/honeycombio/buildevents)](https://github.com/honeycombio/home/blob/main/honeycomb-oss-lifecycle-and-practices.md)
+[![OSS Lifecycle](https://img.shields.io/osslifecycle/honeycombio/buildevents?color=success)](https://github.com/honeycombio/home/blob/main/honeycomb-oss-lifecycle-and-practices.md)
 [![CircleCI](https://circleci.com/gh/honeycombio/buildevents.svg?style=shield)](https://circleci.com/gh/honeycombio/buildevents)
 
 buildevents is a small binary used to help instrument builds in a build system such as Travis-CI, CircleCI, Jenkins, and so on. It is installed during the setup phase and then invoked as part of each step in order to visualize the build as a trace in Honeycomb
