@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/honeycombio/beeline-go v1.2.0
-	github.com/honeycombio/libhoney-go v1.15.4
+	github.com/honeycombio/libhoney-go v1.15.5
 	github.com/jszwedko/go-circleci v0.3.0
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
 	github.com/spf13/cobra v0.0.7
