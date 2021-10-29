@@ -24,7 +24,8 @@ The cmd mode invokes an individual command that is part of the build, such as
 running DB migrations or running a specific test suite. It must be able to be
 expressed as a single shell command - either a process like "go test" or a
 shell script. The command to run is the final argument to buildevents and
-will be launched via "bash -c" using "exec".`,
+will be launched via "bash -c" using "exec". The shell can be changed with the
+-s/--shell flag.`,
 		Args: composer(
 			cobra.MinimumNArgs(4),
 			func(cmd *cobra.Command, args []string) error {
@@ -45,6 +46,7 @@ will be launched via "bash -c" using "exec".`,
 			stepID := strings.TrimSpace(args[1])
 			name := strings.TrimSpace(args[2])
 			quiet, _ := cmd.Flags().GetBool("quiet")
+			shell, _ := cmd.Flags().GetString("shell")
 
 			var quoted []string
 			for _, s := range args[3:] {
@@ -73,7 +75,7 @@ will be launched via "bash -c" using "exec".`,
 				ParentID:     spanID,
 				TraceContext: localFields,
 			}
-			err := runCommand(subcmd, prop, quiet)
+			err := runCommand(subcmd, prop, quiet, shell)
 			dur := time.Since(start)
 
 			ev.Add(map[string]interface{}{
@@ -103,15 +105,17 @@ will be launched via "bash -c" using "exec".`,
 		},
 	}
 	var quiet bool
+	var shell string
 	execCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "silence non-cmd output")
+	execCmd.Flags().StringVarP(&shell, "shell", "s", "/bin/bash", "use and alternative shell")
 	return execCmd
 }
 
-func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool) error {
+func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool, shell string) error {
 	if quiet == false {
-		fmt.Println("running /bin/bash -c", subcmd)
+		fmt.Println("running", shell, "-c", subcmd)
 	}
-	cmd := exec.Command("/bin/bash", "-c", subcmd)
+	cmd := exec.Command(shell, "-c", subcmd)
 
 	cmd.Env = append(os.Environ(),
 		"HONEYCOMB_TRACE="+propagation.MarshalHoneycombTraceContext(prop),
