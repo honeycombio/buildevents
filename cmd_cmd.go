@@ -107,7 +107,7 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 	var quiet bool
 	var shell string
 	execCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "silence non-cmd output")
-	execCmd.Flags().StringVarP(&shell, "shell", "s", "/bin/bash", "use and alternative shell")
+	execCmd.Flags().StringVarP(&shell, "shell", "s", "/bin/bash", "path of shell executable to use for command, must accept -c as an argument")
 	return execCmd
 }
 
