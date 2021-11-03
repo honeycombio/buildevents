@@ -1,5 +1,25 @@
 # buildevents changelog
 
+## 0.7.0 - 2021-11-03
+
+### Added
+
+- Allow specifying an alternative shell (#119) | [@estheruary](https://github.com/estheruary)
+
+### Maintenance
+
+- empower apply-labels action to apply labels (#120)
+- bump libhoney-go to v1.15.6 (#121)
+- Bump github.com/honeycombio/libhoney-go from 1.15.4 to 1.15.5 (#118)
+- Change maintenance badge to maintained (#116)
+- Adds Stalebot (#117)
+- Add NOTICE (#113)
+- Bump github.com/honeycombio/beeline-go from 1.1.2 to 1.2.0 (#109)
+- Bump github.com/honeycombio/libhoney-go from 1.15.3 to 1.15.4 (#108)
+- Add issue and PR templates (#112)
+- Add OSS lifecycle badge (#111)
+- Add community health files (#110)
+
 ## 0.6.0 - 2021-07-14
 
 ### Added
