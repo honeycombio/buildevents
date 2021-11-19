@@ -1,12 +1,22 @@
 # buildevents changelog
 
+## 0.7.1 - 2021-11-19
+
+### Fixed
+
+- Do not fail the build if `watch` fails to fetch Honeycomb URL (#126) | [@asdvalenzuela](https://github.com/asdvalenzuela)
+
+### Maintenance
+ 
+- Create draft gh release during publish (#124) | [@MikeGoldsmith](https://github.com/MikeGoldsmith)
+
 ## 0.7.0 - 2021-11-03
 
 ### Added
 
 - Allow specifying an alternative shell (#119) | [@estheruary](https://github.com/estheruary)
 
-### Maintenance
+### Maintenance
 
 - empower apply-labels action to apply labels (#120)
 - bump libhoney-go to v1.15.6 (#121)
@@ -26,7 +36,7 @@
 
 - Forward stdin. [#99](https://github.com/honeycombio/buildevents/pull/99) | [@shlevy](https://github.com/shlevy)
 
-### Maintenance
+### Maintenance
 
 - Bump github.com/spf13/cobra from 0.0.5 to 0.0.7 [#102](https://github.com/honeycombio/buildevents/pull/102)
 - Bump github.com/honeycombio/libhoney-go from 1.10.0 to 1.15.3 [#101](https://github.com/honeycombio/buildevents/pull/101)
