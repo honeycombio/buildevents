@@ -128,8 +128,9 @@ jobs:
                 command: |
                   echo "about to publish to tag ${CIRCLE_TAG}"
                   tar -xvf artifacts/buildevents.tar
-                  ls -l *
-                  ghr -draft -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/buildevents-*
+                  rm -rf artifacts/buildevents.tar
+                  ls -l ./artifacts
+                  ghr -draft -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts
 
 workflows:
   build:
