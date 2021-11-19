@@ -82,10 +82,9 @@ build with the appropriate timers.`,
 			url, err := buildURL(cfg, traceID, startTime.Unix())
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Unable to create trace URL: %v\n", err)
-				return err
+			} else {
+				fmt.Println(url)
 			}
-			fmt.Println(url)
-
 			return nil
 		},
 	}
