@@ -127,8 +127,8 @@ github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgf
 github.com/grpc-ecosystem/grpc-gateway v1.9.0/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
-github.com/honeycombio/beeline-go v1.3.1 h1:teTDo9/m6q00LiVmBgSdpi2hWDxU6HATOfTBaGoIIms=
-github.com/honeycombio/beeline-go v1.3.1/go.mod h1:qtCLKvv41kTRP6wFE0FppHUEIJo3jcZwDqak01SLr7M=
+github.com/honeycombio/beeline-go v1.3.2 h1:u6HDfQ8eyoTRTLUA8nShKVydDslv3mM+dw7aC5z1VZo=
+github.com/honeycombio/beeline-go v1.3.2/go.mod h1:qtCLKvv41kTRP6wFE0FppHUEIJo3jcZwDqak01SLr7M=
 github.com/honeycombio/libhoney-go v1.15.6 h1:zbwfdo74Gsedmu6OT/oAHv4pfKNoseTXRMA/4e5XWew=
 github.com/honeycombio/libhoney-go v1.15.6/go.mod h1:8NyBoM746bz+nw3yQzQF8gtJO/z4mkr/MD5C4r4uC2Y=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
