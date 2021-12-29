@@ -5,9 +5,8 @@ orbs:
 
 executors:
   linuxgo:
-    working_directory: /go/src/github.com/honeycombio/buildevents
     docker:
-      - image: circleci/golang:1.15.2
+      - image: cimg/go:1.17
 
 commands:
   go-build:
