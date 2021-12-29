@@ -5,7 +5,6 @@ orbs:
 
 executors:
   linuxgo:
-    working_directory: /go/src/github.com/honeycombio/buildevents
     docker:
       - image: cimg/go:1.17
 
