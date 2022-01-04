@@ -189,7 +189,7 @@ func parseUnix(ts string) time.Time {
 func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 	teamName, err := libhoney.VerifyAPIKey(*cfg)
 	if err != nil {
-		return "", fmt.Errorf("unable to verify API key")
+		return "", fmt.Errorf("unable to verify API key: %w", err)
 	}
 	uiHost := strings.Replace(cfg.APIHost, "api", "ui", 1)
 	u, err := url.Parse(uiHost)
