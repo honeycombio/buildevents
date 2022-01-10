@@ -1,7 +1,10 @@
 package main
 
 import (
+	"errors"
 	"os"
+
+	"os/exec"
 
 	libhoney "github.com/honeycombio/libhoney-go"
 )
@@ -41,6 +44,13 @@ func main() {
 	// Do the work
 	if err := root.Execute(); err != nil {
 		libhoney.Close()
+
+		// If the underlying command returned a specific exit code, we need
+		// to exit it with it as well to act transparently.
+		var cmdErr *exec.ExitError
+		if errors.As(err, &cmdErr) {
+			os.Exit(cmdErr.ExitCode())
+		}
 		os.Exit(1)
 	}
 }
