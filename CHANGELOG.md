@@ -1,5 +1,20 @@
 # buildevents changelog
 
+## 0.7.2 - 2022-01-07
+
+### Fixes
+
+- Display underlying error when verifying API key (#135) | [@jhchabran](https://github.com/jhchabran)
+
+### Maintenance
+
+- Update ci image (#132) | [@vreynolds](https://github.com/vreynolds)
+- Add re-triage workflow (#131) | [@vreynolds](https://github.com/vreynolds)
+- Only create one draft gh release (#128) | [@vreynolds](https://github.com/vreynolds)
+- Bump github.com/spf13/cobra from 0.0.7 to 1.2.1 (#130)
+- Bump github.com/honeycombio/beeline-go from 1.3.1 to 1.3.2 (#129)
+- Bump github.com/honeycombio/beeline-go from 1.2.0 to 1.3.1 (#123)
+
 ## 0.7.1 - 2021-11-19
 
 ### Fixed
