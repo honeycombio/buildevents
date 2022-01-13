@@ -1,5 +1,11 @@
 # buildevents changelog
 
+## 0.8.0 - 2022-01-13
+
+### Fixes
+
+- Return underlying exit code when running commands (#137) | [@jhchabran](https://github.com/jhchabran)
+
 ## 0.7.2 - 2022-01-07
 
 ### Fixes
