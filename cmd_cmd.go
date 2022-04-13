@@ -26,7 +26,7 @@ expressed as a single shell command - either a process like "go test" or a
 shell script. The command to run is the final argument to buildevents and
 will be launched via "bash -c" using "exec". The shell can be changed with the
 -s/--shell flag.`,
-		Args: composer(
+		Args: cobra.MatchAll(
 			cobra.MinimumNArgs(4),
 			func(cmd *cobra.Command, args []string) error {
 				if cmd.ArgsLenAtDash() != 3 {

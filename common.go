@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/kr/logfmt"
-	"github.com/spf13/cobra"
 
 	libhoney "github.com/honeycombio/libhoney-go"
 	"github.com/honeycombio/libhoney-go/transmission"
@@ -202,16 +201,4 @@ func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 		"%s?trace_id=%s&trace_start_ts=%d&trace_end_ts=%d",
 		u.String(), traceID, ts, endTime,
 	), nil
-}
-
-// composer allows combining several PositionalArgs to work in concert.
-func composer(pargs ...cobra.PositionalArgs) cobra.PositionalArgs {
-	return func(cmd *cobra.Command, args []string) error {
-		for _, parg := range pargs {
-			if err := parg(cmd, args); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
 }
