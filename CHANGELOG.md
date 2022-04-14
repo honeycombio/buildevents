@@ -1,5 +1,21 @@
 # buildevents changelog
 
+## 0.9.0 - 2022-04-11
+
+- Bump cobra to v1.4.0 - closes #143
+- Bump beeline to v1.8.0
+- Bump libhoney to v1.15.8
+- Use cobra.MatchAll instead of identical custom code
+- Clean up buildURL function to construct URLs more safely
+- The `service_name` field is mirrored to `service.name`
+- Detect classic key and change behavior for non-classic mode:
+  - Service Name, if specified, is used as the dataset as well as both `service_name` and `service.name` fields.
+  - If dataset is specified and service name is not, it will be used but will generate a warning (except in quiet mode).
+  - If both are specified, service name will be used, dataset is ignored, and a warning will be emitted (except in quiet mode).
+  - The command name is now sent as command_name (in classic it is still sent as service_name).
+  - The `watch` command now sets the `name` field to merely `watch` rather than a high-cardinality value, making it easier to aggregate queries across different builds.
+
+-
 ## 0.8.0 - 2022-01-13
 
 ### Fixes
@@ -28,7 +44,7 @@
 - Do not fail the build if `watch` fails to fetch Honeycomb URL (#126) | [@asdvalenzuela](https://github.com/asdvalenzuela)
 
 ### Maintenance
- 
+
 - Create draft gh release during publish (#124) | [@MikeGoldsmith](https://github.com/MikeGoldsmith)
 
 ## 0.7.0 - 2021-11-03

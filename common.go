@@ -213,3 +213,16 @@ func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 
 	return u.String(), nil
 }
+
+// classic keys are always 32 bytes, non-classic are less than that
+// classic keys are also hex but that doesn't matter here
+func isClassic(key string) bool {
+	return len(key) == 32
+}
+
+func ifClassic(key, classicVal, elseVal string) string {
+	if isClassic(key) {
+		return classicVal
+	}
+	return elseVal
+}

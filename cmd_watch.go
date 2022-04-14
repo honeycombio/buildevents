@@ -40,7 +40,7 @@ func commandWatch(cfg *libhoney.Config, filename *string, ciProvider *string, wc
 Polls the CircleCI API and waits until all jobs have finished (either
 succeeded, failed, or are blocked). It then reports the final status of the
 build with the appropriate timers.`,
-		Args: composer(
+		Args: cobra.MatchAll(
 			cobra.ExactArgs(1),
 			func(cmd *cobra.Command, args []string) error {
 				if *ciProvider != providerCircle {
@@ -69,11 +69,14 @@ build with the appropriate timers.`,
 			}
 
 			ev.Add(map[string]interface{}{
-				"service_name":  "watch",
+				"service_name":  ifClassic(cfg.APIKey, "watch", cfg.Dataset),
+				"service.name":  ifClassic(cfg.APIKey, "watch", cfg.Dataset),
+				"command_name":  "watch",
 				"trace.span_id": traceID,
-				"name":          "watch " + traceID,
+				"name":          ifClassic(cfg.APIKey, "watch "+traceID, "watch"),
 				"status":        status,
 				"duration_ms":   endTime.Sub(startTime) / time.Millisecond,
+				"source":        "buildevents",
 			})
 			ev.Timestamp = startTime
 

@@ -33,11 +33,14 @@ a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 			providerInfo(*ciProvider, ev)
 
 			ev.Add(map[string]interface{}{
-				"service_name":  "build",
+				"service_name":  ifClassic(cfg.APIKey, "build", cfg.Dataset),
+				"service.name":  ifClassic(cfg.APIKey, "build", cfg.Dataset),
+				"command_name":  "build",
 				"trace.span_id": traceID,
 				"name":          "build " + traceID,
 				"status":        outcome,
 				"duration_ms":   time.Since(startTime) / time.Millisecond,
+				"source":        "buildevents",
 			})
 			ev.Timestamp = startTime
 

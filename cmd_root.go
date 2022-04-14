@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -8,7 +9,7 @@ import (
 	libhoney "github.com/honeycombio/libhoney-go"
 )
 
-func commandRoot(cfg *libhoney.Config, filename *string, ciProvider *string) *cobra.Command {
+func commandRoot(cfg *libhoney.Config, filename *string, ciProvider *string, serviceName *string) *cobra.Command {
 	root := &cobra.Command{
 		Version: Version,
 		Use:     "buildevents",
@@ -16,6 +17,39 @@ func commandRoot(cfg *libhoney.Config, filename *string, ciProvider *string) *co
 		Long: `
 The buildevents executable creates Honeycomb events and tracing information
 about your Continuous Integration builds.`,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			quiet, _ := cmd.Flags().GetBool("quiet")
+			if isClassic(cfg.APIKey) {
+				// if we're in classic mode, we want to behave the same as we always have
+				if cfg.Dataset == "" {
+					cfg.Dataset = "buildevents"
+				}
+				if *serviceName != "" {
+					fmt.Fprintf(os.Stderr, "WARN: classic mode ignores the service name parameter.\n")
+				}
+			} else {
+				// This is the non-classic behavior
+				if *serviceName != "" {
+					// service name was specified, so use it as the dataset
+					if cfg.Dataset != "" && !quiet {
+						// warn if we're going to ignore a specified dataset
+						fmt.Fprintf(os.Stderr, "WARN: service name was specified, dataset is ignored.\n")
+					}
+					cfg.Dataset = *serviceName
+				} else {
+					// service_name was not specified
+					if cfg.Dataset != "" {
+						// dataset was, so use it but warn
+						if !quiet {
+							fmt.Fprintf(os.Stderr, "WARN: dataset is deprecated, please use service_name.\n")
+						}
+					} else {
+						// neither was specified, so just use the default
+						cfg.Dataset = "buildevents"
+					}
+				}
+			}
+		},
 	}
 
 	root.PersistentFlags().StringVarP(&cfg.APIKey, "apikey", "k", "", "[env.BUILDEVENT_APIKEY] the Honeycomb authentication token")
@@ -27,6 +61,11 @@ about your Continuous Integration builds.`,
 	root.PersistentFlags().StringVarP(&cfg.Dataset, "dataset", "d", "buildevents", "[env.BUILDEVENT_DATASET] the name of the Honeycomb dataset to which to send these events")
 	if dataset, ok := os.LookupEnv("BUILDEVENT_DATASET"); ok {
 		root.PersistentFlags().Lookup("dataset").Value.Set(dataset)
+	}
+
+	root.PersistentFlags().StringVarP(serviceName, "service_name", "n", "", "[env.BUILDEVENT_SERVICE_NAME] the name of the service to which to send these events; overrides dataset")
+	if service_name, ok := os.LookupEnv("BUILDEVENT_SERVICE_NAME"); ok {
+		root.PersistentFlags().Lookup("service_name").Value.Set(service_name)
 	}
 
 	root.PersistentFlags().StringVarP(&cfg.APIHost, "apihost", "a", "https://api.honeycomb.io", "[env.BUILDEVENT_APIHOST] the hostname for the Honeycomb API server to which to send this event")
