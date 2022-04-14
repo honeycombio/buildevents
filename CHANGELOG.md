@@ -1,5 +1,21 @@
 # buildevents changelog
 
+## 0.9.0 - 2022-04-14
+
+- Bump cobra to v1.4.0
+- Bump beeline to v1.8.0
+- Bump libhoney to v1.15.8
+- Use cobra.MatchAll instead of identical custom code
+- Clean up buildURL function to construct URLs more safely
+- The `service_name` field is mirrored to `service.name`
+- Detect classic key and change behavior for non-classic mode:
+  - Service Name, if specified, is used as the dataset as well as both `service_name` and `service.name` fields.
+  - If dataset is specified and service name is not, it will be used but will generate a warning (except in quiet mode).
+  - If both are specified, service name will be used, dataset is ignored, and a warning will be emitted (except in quiet mode).
+  - The command name is now sent as command_name (in classic it is still sent as service_name).
+  - The `watch` command now sets the `name` field to merely `watch` rather than a high-cardinality value, making it easier to aggregate queries across different builds.
+  - Dataset name is trimmed of leading/trailing whitespace; if any was found emits a warning (except in quiet mode)
+
 ## 0.8.0 - 2022-01-13
 
 ### Fixes
