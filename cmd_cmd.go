@@ -26,7 +26,7 @@ expressed as a single shell command - either a process like "go test" or a
 shell script. The command to run is the final argument to buildevents and
 will be launched via "bash -c" using "exec". The shell can be changed with the
 -s/--shell flag.`,
-		Args: composer(
+		Args: cobra.MatchAll(
 			cobra.MinimumNArgs(4),
 			func(cmd *cobra.Command, args []string) error {
 				if cmd.ArgsLenAtDash() != 3 {
@@ -81,10 +81,13 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": stepID,
 				"trace.span_id":   spanID,
-				"service_name":    "cmd",
+				"service_name":    ifClassic(cfg.APIKey, "cmd", cfg.Dataset),
+				"service.name":    ifClassic(cfg.APIKey, "cmd", cfg.Dataset),
+				"command_name":    "cmd",
 				"name":            name,
 				"duration_ms":     dur / time.Millisecond,
 				"cmd":             subcmd,
+				"source":          "buildevents",
 			})
 			ev.Timestamp = start
 
@@ -112,7 +115,7 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 }
 
 func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool, shell string) error {
-	if quiet == false {
+	if !quiet {
 		fmt.Println("running", shell, "-c", subcmd)
 	}
 	cmd := exec.Command(shell, "-c", subcmd)

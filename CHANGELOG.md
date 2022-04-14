@@ -28,7 +28,7 @@
 - Do not fail the build if `watch` fails to fetch Honeycomb URL (#126) | [@asdvalenzuela](https://github.com/asdvalenzuela)
 
 ### Maintenance
- 
+
 - Create draft gh release during publish (#124) | [@MikeGoldsmith](https://github.com/MikeGoldsmith)
 
 ## 0.7.0 - 2021-11-03

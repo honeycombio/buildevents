@@ -34,9 +34,12 @@ most closely maps to a single job. It should be run at the end of the step.`,
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": traceID,
 				"trace.span_id":   stepID,
-				"service_name":    "step",
+				"service_name":    ifClassic(cfg.APIKey, "step", cfg.Dataset),
+				"service.name":    ifClassic(cfg.APIKey, "step", cfg.Dataset),
+				"command_name":    "step",
 				"name":            name,
 				"duration_ms":     time.Since(startTime) / time.Millisecond,
+				"source":          "buildevents",
 			})
 			ev.Timestamp = startTime
 

@@ -6,12 +6,12 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/kr/logfmt"
-	"github.com/spf13/cobra"
 
 	libhoney "github.com/honeycombio/libhoney-go"
 	"github.com/honeycombio/libhoney-go/transmission"
@@ -186,6 +186,12 @@ func parseUnix(ts string) time.Time {
 	return unix
 }
 
+// slugify turns a name into a slug. It is idempotent to things that are already slugs.
+func slugify(name string) string {
+	slugReplaceRegex := regexp.MustCompile(`[^a-z0-9_~\.-]`)
+	return slugReplaceRegex.ReplaceAllString(strings.ToLower(name), "-")
+}
+
 func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 	teamName, err := libhoney.VerifyAPIKey(*cfg)
 	if err != nil {
@@ -196,22 +202,27 @@ func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("unable to infer UI host: %s", uiHost)
 	}
-	u.Path = path.Join(teamName, "datasets", strings.Replace(cfg.Dataset, " ", "-", -1), "trace")
+	u.Path = path.Join(teamName, "datasets", slugify(cfg.Dataset), "trace")
 	endTime := time.Now().Add(10 * time.Minute).Unix()
-	return fmt.Sprintf(
-		"%s?trace_id=%s&trace_start_ts=%d&trace_end_ts=%d",
-		u.String(), traceID, ts, endTime,
-	), nil
+
+	v := url.Values{}
+	v.Set("trace_id", traceID)
+	v.Set("trace_start_ts", strconv.FormatInt(ts, 10))
+	v.Set("trace_end_ts", strconv.FormatInt(endTime, 10))
+	u.RawQuery = v.Encode()
+
+	return u.String(), nil
 }
 
-// composer allows combining several PositionalArgs to work in concert.
-func composer(pargs ...cobra.PositionalArgs) cobra.PositionalArgs {
-	return func(cmd *cobra.Command, args []string) error {
-		for _, parg := range pargs {
-			if err := parg(cmd, args); err != nil {
-				return err
-			}
-		}
-		return nil
+// classic keys are always 32 bytes, non-classic are less than that
+// classic keys are also hex but that doesn't matter here
+func isClassic(key string) bool {
+	return len(key) == 32
+}
+
+func ifClassic(key, classicVal, elseVal string) string {
+	if isClassic(key) {
+		return classicVal
 	}
+	return elseVal
 }

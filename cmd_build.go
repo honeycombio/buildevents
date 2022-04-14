@@ -33,11 +33,14 @@ a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 			providerInfo(*ciProvider, ev)
 
 			ev.Add(map[string]interface{}{
-				"service_name":  "build",
+				"service_name":  ifClassic(cfg.APIKey, "build", cfg.Dataset),
+				"service.name":  ifClassic(cfg.APIKey, "build", cfg.Dataset),
+				"command_name":  "build",
 				"trace.span_id": traceID,
 				"name":          "build " + traceID,
 				"status":        outcome,
 				"duration_ms":   time.Since(startTime) / time.Millisecond,
+				"source":        "buildevents",
 			})
 			ev.Timestamp = startTime
 
@@ -56,9 +59,8 @@ a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 	return buildCmd
 }
 
-// composer allows combining several PositionalArgs to work in concert.
 func argOptions(pos int, opts ...string) cobra.PositionalArgs {
-	return composer(
+	return cobra.MatchAll(
 		cobra.MinimumNArgs(pos+1),
 		func(cmd *cobra.Command, args []string) error {
 			for _, opt := range opts {

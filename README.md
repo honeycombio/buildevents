@@ -408,17 +408,17 @@ send_failure_trace:
 # Positional argument reference
 
 All the arguments to the various `buildevents` modes are listed above, but for
-convenience, here is a summary of the three modes and the arguments that each
+convenience, here is a summary of the modes and the arguments that each
 requires.
 
 The first argument is the running mode for this invocation of buildevents:
-`build`, `step`, or `cmd` The remaining arguments differ depending on the
+`build`, `watch`, `step`, or `cmd` The remaining arguments differ depending on the
 mode.
 
 arguments for the `build` mode:
 1. `build_id` this is used as both the trace ID and to generate a URL to link back to the build
-1. `start_time` used to calculate the total duration of the build
-1. `status` should be `success` or `failure` and indicates whether the overall build succeeeded or failed
+2. `start_time` used to calculate the total duration of the build
+3. `status` should be `success` or `failure` and indicates whether the overall build succeeeded or failed
 
 arguments for the `watch` mode:
 1. `build_id` this is used as the trace ID
@@ -434,3 +434,18 @@ arguments for the `cmd` mode:
 1. `step_id` buildevents expects a build to contain steps, and each step to have commands. The step ID is used to help construct this tree
 1. `name` the name for this command, used in the Honeycomb UI
 1. `--` double hyphen indicates the rest of the line will be the command to run
+
+## Note
+`name` is most useful if it is a low-cardinality value, usually something like the name of a step in your process. Using a low-cardinality value makes it valuable to do things like `GROUP BY name` in your queries.
+
+## Differences between Classic and non-Classic environments
+
+For "Honeycomb Classic", `buildevents` works almost the same as it always has. It has added service.name in addition to service_name; both fields have the same value.
+
+In a non-Classic environment, there are several differences:
+* Service Name, if specified, is used as the dataset as well as both `service_name` and `service.name` fields.
+* if dataset is specified and service name is not, it will be used but will generate a warning.
+* if both are specified, service name will be used, dataset is ignored, and a warning will be emitted (except in quiet mode)
+* the command name is now sent as command_name (in classic it is sent as service_name)
+* the watch command now sets the `name` field to merely `watch` rather than a high-cardinality value, making it easier to aggregate queries across different builds
+

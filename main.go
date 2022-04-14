@@ -30,8 +30,9 @@ func main() {
 	var filename string
 	var ciProvider string
 	var wcfg watchConfig
+	var serviceName string
 
-	root := commandRoot(&config, &filename, &ciProvider)
+	root := commandRoot(&config, &filename, &ciProvider, &serviceName)
 
 	// Put 'em all together
 	root.AddCommand(
