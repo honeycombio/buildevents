@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -24,7 +25,7 @@ about your Continuous Integration builds.`,
 				if cfg.Dataset == "" {
 					cfg.Dataset = "buildevents"
 				}
-				if *serviceName != "" {
+				if *serviceName != "" && !quiet {
 					fmt.Fprintf(os.Stderr, "WARN: classic mode ignores the service name parameter.\n")
 				}
 			} else {
@@ -35,7 +36,11 @@ about your Continuous Integration builds.`,
 						// warn if we're going to ignore a specified dataset
 						fmt.Fprintf(os.Stderr, "WARN: service name was specified, dataset is ignored.\n")
 					}
-					cfg.Dataset = *serviceName
+					trimmed := strings.TrimSpace(*serviceName)
+					if trimmed != *serviceName && !quiet {
+						fmt.Fprintf(os.Stderr, "WARN: service name contained leading or trailing whitespace, sending to '%s'.\n", trimmed)
+					}
+					cfg.Dataset = trimmed
 				} else {
 					// service_name was not specified
 					if cfg.Dataset != "" {
