@@ -63,7 +63,7 @@ about your Continuous Integration builds.`,
 		root.PersistentFlags().Lookup("apikey").Value.Set(apikey)
 	}
 
-	root.PersistentFlags().StringVarP(&cfg.Dataset, "dataset", "d", "buildevents", "[env.BUILDEVENT_DATASET] the name of the Honeycomb dataset to which to send these events")
+	root.PersistentFlags().StringVarP(&cfg.Dataset, "dataset", "d", "", "[env.BUILDEVENT_DATASET] the name of the Honeycomb dataset to which to send these events")
 	if dataset, ok := os.LookupEnv("BUILDEVENT_DATASET"); ok {
 		root.PersistentFlags().Lookup("dataset").Value.Set(dataset)
 	}
