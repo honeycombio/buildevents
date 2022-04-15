@@ -2,7 +2,7 @@
 
 ## 0.9.1 - 2022-04-15
 
-- [bug] Fix default value for dataset to be empty so that dataset determination logic works correctly.
+- [bug] Fix default value for dataset to be empty so that dataset determination logic works correctly. (#148) [@kentquirk](https://github.com/kentquirk)
 
 ## 0.9.0 - 2022-04-14
 
