@@ -6,7 +6,7 @@ orbs:
 executors:
   linuxgo:
     docker:
-      - image: cimg/go:1.17
+      - image: cimg/go:1.18
 
 commands:
   go-build:
