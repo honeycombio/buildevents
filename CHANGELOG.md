@@ -1,5 +1,12 @@
 # buildevents changelog
 
+## 0.9.2 - 2022-04-25
+
+### Maintenance
+
+- update ci image to cimg/go:1.18 (#150) | [@JamieDanielson](https://github.com/JamieDanielson)
+  - - fixes openSSL CVE
+
 ## 0.9.1 - 2022-04-15
 
 - [bug] Fix default value for dataset to be empty so that dataset determination logic works correctly. (#148) [@kentquirk](https://github.com/kentquirk)
