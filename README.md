@@ -125,6 +125,32 @@ after_success:
   - echo "Honeycomb Trace: $traceURL"
 ```
 
+### what it generates
+
+Given this command:
+
+```bash
+buildevents $HOST -k $API_KEY build htjebmye $BUILD_STARTTIME success
+```
+
+The event that arrives at Honeycomb (which has no trace.parent_id since it is the root of a trace) might look like:
+
+```json
+{
+    "Timestamp": "2022-05-24T01:49:13Z",
+    "command_name": "build",
+    "duration_ms": 4981,
+    "meta.version": "dev",
+    "name": "build htjebmye",
+    "service.name": "build",
+    "service_name": "build",
+    "source": "buildevents",
+    "status": "success",
+    "trace.span_id": "htjebmye",
+    "trace.trace_id": "htjebmye"
+}
+```
+
 ## watch
 
 CirclecI requires use of the CircleCI API to detect when workflows start and stop. There is no facility to always run a job after all others, so what works using the Travis-CI `after_failure` will not work on CircleCI. However, the CircleCI API exposes when the current workflow has started, and can be used intsead.
@@ -169,6 +195,32 @@ jobs:
           when: always   # ensures the span is always sent, even when something in the job fails
 ```
 
+### what it generates
+
+Given this command:
+
+```bash
+buildevents $HOST -k $API_KEY step htjebmye building_htjebmye $STEP_STARTTIME building
+```
+
+The event that arrives at Honeycomb might look like:
+
+```json
+{
+    "Timestamp": "2022-05-24T01:49:14Z",
+    "command_name": "step",
+    "duration_ms": 3064,
+    "meta.version": "dev",
+    "name": "building",
+    "service.name": "step",
+    "service_name": "step",
+    "source": "buildevents",
+    "trace.parent_id": "htjebmye",
+    "trace.span_id": "building_htjebmye",
+    "trace.trace_id": "htjebmye"
+}
+```
+
 ## cmd
 
 Running `buildevents cmd` will run the given command, time it, and include the `status` of the command (`success` or `failure`). `buildevents` passes through both STDOUT and STDERR from the process it wraps, and exits with the same exit code as the wrapped process. The actual command to run is separated from the `buildevents` arguments by a double hyphen `--`.
@@ -187,6 +239,34 @@ jobs:
   go_test:
     steps:
       - run: $GOPATH/bin/buildevents cmd $TRAVIS_BUILD_ID $STEP_SPAN_ID go-test -- go test -timeout 2m -mod vendor ./...
+```
+
+### what it generates
+
+Given this command:
+
+```bash
+buildevents $HOST -k $API_KEY cmd htjebmye building_htjebmye compile -- sleep 1
+```
+
+The event that arrives at Honeycomb might look like:
+
+```json
+{
+    "Timestamp": "2022-05-24T01:49:14.653182Z",
+    "cmd": "\"sleep\" \"1\"",
+    "command_name": "cmd",
+    "duration_ms": 1008,
+    "meta.version": "dev",
+    "name": "compile",
+    "service.name": "cmd",
+    "service_name": "cmd",
+    "source": "buildevents",
+    "status": "success",
+    "trace.parent_id": "building_htjebmye",
+    "trace.span_id": "6facde6ac6a95e704b9ec1c837270578",
+    "trace.trace_id": "htjebmye"
+}
 ```
 
 ## Attaching more traces from your build and test process
