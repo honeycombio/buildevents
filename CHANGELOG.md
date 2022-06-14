@@ -1,5 +1,16 @@
 # buildevents changelog
 
+## 0.10.0 - 2022-06-14
+
+### Enhancements
+
+- Build for Darwin ARM64 (#157) | [Kent Quirk](https://github.com/kentquirk) & [John Dorman](https://github.com/boostchicken)
+
+### Maintenance
+
+- [docs] Add examples of generated events (#155) | [Kent Quirk](https://github.com/kentquirk)
+- [docs] Remember to update orb when releasing a new version (#152) | [Vera Reynolds](https://github.com/vreynolds)
+
 ## 0.9.2 - 2022-04-25
 
 ### Maintenance
