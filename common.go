@@ -116,7 +116,7 @@ func providerInfo(provider string, ev *libhoney.Event) {
 			"BUILD_REPOSITORY_URI":                 "repo",
 		}
 
-	case "github-actions", "githubactions", "github":
+	case "github-actions", "githubactions", "github", "gha-buildevents":
 		envVars = map[string]string{
 			"GITHUB_REF":        "branch",
 			"GITHUB_RUN_ID":     "build_num",
