@@ -1,5 +1,15 @@
 # buildevents changelog
 
+## 0.11.0 - 2022-07-13
+
+### Enhancements
+
+- add gha-buildevents as GHA provider alias (#160) | [@dstrelau](https://github.com/dstrelau)
+
+### Maintenance
+
+- Bump github.com/spf13/cobra from 1.4.0 to 1.5.0 (#161) | [dependabot](https://github.com/dependabot)
+
 ## 0.10.0 - 2022-06-14
 
 ### Enhancements
