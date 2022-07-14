@@ -1,5 +1,11 @@
 # buildevents changelog
 
+## 0.12.0 - 2022-07-14
+
+### Enhancements
+
+- Add support to send data to environments (#162) | [@MikeGoldsmith](https://github.com/MikeGoldsmith)
+
 ## 0.11.0 - 2022-07-13
 
 ### Enhancements
