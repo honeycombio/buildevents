@@ -193,7 +193,7 @@ func slugify(name string) string {
 }
 
 func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
-	teamName, err := libhoney.VerifyAPIKey(*cfg)
+	team, environment, err := libhoney.GetTeamAndEnvironment(*cfg)
 	if err != nil {
 		return "", fmt.Errorf("unable to verify API key: %w", err)
 	}
@@ -202,7 +202,12 @@ func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("unable to infer UI host: %s", uiHost)
 	}
-	u.Path = path.Join(teamName, "datasets", slugify(cfg.Dataset), "trace")
+	pathSegments := []string{team}
+	if !isClassic(cfg.APIKey) {
+		pathSegments = append(pathSegments, "environments", environment)
+	}
+	pathSegments = append(pathSegments, "datasets", slugify(cfg.Dataset), "trace")
+	u.Path = path.Join(pathSegments...)
 	endTime := time.Now().Add(10 * time.Minute).Unix()
 
 	v := url.Values{}
