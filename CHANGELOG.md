@@ -1,5 +1,12 @@
 # buildevents changelog
 
+
+## 0.12.1 - 2022-07-20
+
+### Maintenance
+
+- Re-release to fix OpenSSL CVE | [@kentquirk](https://github.com/kentquirk)
+
 ## 0.12.0 - 2022-07-14
 
 ### Enhancements
