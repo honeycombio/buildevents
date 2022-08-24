@@ -43,12 +43,7 @@ about your Continuous Integration builds.`,
 					cfg.Dataset = trimmed
 				} else {
 					// service_name was not specified
-					if cfg.Dataset != "" {
-						// dataset was, so use it but warn
-						if !quiet {
-							fmt.Fprintf(os.Stderr, "WARN: dataset is deprecated, please use service_name.\n")
-						}
-					} else {
+					if cfg.Dataset == "" {
 						// neither was specified, so just use the default
 						cfg.Dataset = "buildevents"
 					}
