@@ -99,6 +99,7 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 				ev.AddField("status", "success")
 			} else {
 				ev.Add(map[string]interface{}{
+					"error":          true,
 					"status":         "failure",
 					"failure_reason": err.Error(),
 				})
