@@ -1,6 +1,17 @@
 # buildevents changelog
 
 
+## 0.13.0 - 2022-08-25
+
+### Enhancements
+
+- include sending error true for spans representing error states for builds (#168) | [@mjayaram](https://github.com/mjayaram)
+- Removes checking and warning for when only the dataset is configured for Buildevents; Updates logic to set default is no Dataset is configured for the non-classic use (#167) | [@mjayaram](https://github.com/mjayaram)
+
+### Maintenance
+
+- Bump github.com/honeycombio/beeline-go from 1.8.0 to 1.9.0 (#166) | [dependabot](https://github.com/dependabot)
+
 ## 0.12.1 - 2022-07-20
 
 ### Maintenance
