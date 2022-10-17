@@ -47,12 +47,9 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 			name := strings.TrimSpace(args[2])
 			quiet, _ := cmd.Flags().GetBool("quiet")
 			shell, _ := cmd.Flags().GetString("shell")
+			shellArgs, _ := cmd.Flags().GetStringSlice("shell-arg")
 
-			var quoted []string
-			for _, s := range args[3:] {
-				quoted = append(quoted, fmt.Sprintf("\"%s\"", strings.Replace(s, "\"", "\\\"", -1)))
-			}
-			subcmd := strings.Join(quoted, " ")
+			subcmd := args[3:]
 
 			ev := createEvent(cfg, *ciProvider, traceID)
 			defer ev.Send()
@@ -75,7 +72,7 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 				ParentID:     spanID,
 				TraceContext: localFields,
 			}
-			err := runCommand(subcmd, prop, quiet, shell)
+			err := runCommand(args[3:], prop, quiet, shell, shellArgs)
 			dur := time.Since(start)
 
 			ev.Add(map[string]interface{}{
@@ -111,15 +108,18 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 	var quiet bool
 	var shell string
 	execCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "silence non-cmd output")
-	execCmd.Flags().StringVarP(&shell, "shell", "s", "/bin/bash", "path of shell executable to use for command, must accept -c as an argument")
+	execCmd.Flags().StringVarP(&shell, "shell", "s", "/bin/bash", "path of shell executable to use for command, must accept the shell args (default: -c) as an argument")
+	execCmd.Flags().StringSliceP("shell-arg", "", []string{"-c"}, "options to pass to the shell executable")
 	return execCmd
 }
 
-func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool, shell string) error {
+func runCommand(subcmd []string, prop *propagation.PropagationContext, quiet bool, shell string, shellArgs []string) error {
+	args := append(shellArgs, subcmd...)
 	if !quiet {
-		fmt.Println("running", shell, "-c", subcmd)
+		fmt.Println("running", shell, args)
 	}
-	cmd := exec.Command(shell, "-c", subcmd)
+
+	cmd := exec.Command(shell, args...)
 
 	cmd.Env = append(os.Environ(),
 		"HONEYCOMB_TRACE="+propagation.MarshalHoneycombTraceContext(prop),
