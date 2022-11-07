@@ -48,11 +48,7 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 			quiet, _ := cmd.Flags().GetBool("quiet")
 			shell, _ := cmd.Flags().GetString("shell")
 
-			var quoted []string
-			for _, s := range args[3:] {
-				quoted = append(quoted, fmt.Sprintf("\"%s\"", strings.Replace(s, "\"", "\\\"", -1)))
-			}
-			subcmd := strings.Join(quoted, " ")
+			subcmd := strings.Join(args[3:], " ")
 
 			ev := createEvent(cfg, *ciProvider, traceID)
 			defer ev.Send()
