@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  buildevents: honeycombio/buildevents@0.9.0
-
 executors:
   linuxgo:
     docker:
@@ -22,139 +19,92 @@ commands:
         enum: ["386", "amd64", "arm64"]
         default: "amd64"
     steps:
-      ## method 1 to send a command span
-      ## the raw buildevents binary is available in the $PATH but requires more arguments
-      ## don't use CGO so that this binary can run in alpine-linux containers
       - run: |
           GOOS=<< parameters.os >> \
           GOARCH=<< parameters.arch >> \
           CGO_ENABLED=0 \
-          buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID go_build -- \
           go build -ldflags "-X main.Version=${CIRCLE_TAG}" \
           -o $GOPATH/bin/buildevents-<< parameters.os >>-<< parameters.arch >> \
           ./...
 
 jobs:
-  setup:
-    executor: linuxgo
-    steps:
-      - buildevents/start_trace
-  watch:
-    executor: linuxgo
-    steps:
-      - buildevents/watch_build_and_finish
-
   test:
     executor: linuxgo
     steps:
-      - buildevents/with_job_span:
-          steps:
-            - checkout
-            ## method 2 to send a command span
-            ## buildevent/berun is a circleci friendly way to create a buildevents command span
-            - buildevents/berun:
-                bename: go_test
-                becommand: go test -v ./...
+      - checkout
+      - run:
+          name: go_test
+          command: go test -v ./...
+
   build:
     executor: linuxgo
     steps:
-      - buildevents/with_job_span:
-          steps:
-            - checkout
-            - go-build:
-                os: linux
-                arch: "386"
-            - go-build:
-                os: linux
-                arch: amd64
-            - go-build:
-                os: darwin
-                arch: amd64
-            - go-build:
-                os: darwin
-                arch: arm64
-            - go-build:
-                os: linux
-                arch: arm64
-            - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents-* artifacts/
-
-            ## just to serve as an example, let's add the size of the artifacts built to our trace
-            - run: echo "size=$(du -sb artifacts | cut -f 1)" >> $BASH_ENV
-            - buildevents/add_context:
-                field_name: artifacts_size_bytes
-                field_value: $size
-
-            ## ok, carry on and upload the artifacts
-            - run: tar -cvf artifacts/buildevents.tar artifacts/buildevents-*
-            - persist_to_workspace:
-                root: artifacts
-                paths:
-                  - buildevents.tar
-            - store_artifacts:
-                path: artifacts/
+      - checkout
+      - go-build:
+          os: linux
+          arch: "386"
+      - go-build:
+          os: linux
+          arch: amd64
+      - go-build:
+          os: darwin
+          arch: amd64
+      - go-build:
+          os: darwin
+          arch: arm64
+      - go-build:
+          os: linux
+          arch: arm64
+      - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents-* artifacts/
+      - run: tar -cvf artifacts/buildevents.tar artifacts/buildevents-*
+      - persist_to_workspace:
+          root: artifacts
+          paths:
+            - buildevents.tar
+      - store_artifacts:
+          path: artifacts/
 
   smoketest:
     executor: linuxgo
     steps:
-      - buildevents/with_job_span:
-          steps:
-            - attach_workspace:
-                at: artifacts
-            - run: tar -xvf artifacts/buildevents.tar
-            - run:
-                name: "Subcommand success = success"
-                command: |
-                  result=$(artifacts/buildevents-linux-amd64 cmd buildId stepId name -- true >/dev/null && echo "worked")
-                  if [ "$result" != "worked" ]; then
-                    exit 1
-                  fi
-            - run:
-                name: "Subcommand failure = failure"
-                command: |
-                  result=$(artifacts/buildevents-linux-amd64 cmd buildId stepId name -- false > /dev/null || echo "worked" )
-                  if [ "$result" != "worked" ]; then
-                    exit 1
-                  fi
+      - attach_workspace:
+          at: artifacts
+      - run: tar -xvf artifacts/buildevents.tar
+      - run:
+          name: "Subcommand success = success"
+          command: |
+            result=$(artifacts/buildevents-linux-amd64 cmd buildId stepId name -- true >/dev/null && echo "worked")
+            if [ "$result" != "worked" ]; then
+              exit 1
+            fi
+      - run:
+          name: "Subcommand failure = failure"
+          command: |
+            result=$(artifacts/buildevents-linux-amd64 cmd buildId stepId name -- false > /dev/null || echo "worked" )
+            if [ "$result" != "worked" ]; then
+              exit 1
+            fi
 
 
   publish:
     docker:
       - image: cibuilds/github:0.12.1
     steps:
-      - buildevents/with_job_span:
-          steps:
-            - attach_workspace:
-                at: artifacts
-            - run:
-                name: "Publish Release on GitHub"
-                command: |
-                  echo "about to publish to tag ${CIRCLE_TAG}"
-                  tar -xvf artifacts/buildevents.tar
-                  rm -rf artifacts/buildevents.tar
-                  ls -l ./artifacts
-                  ghr -draft -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts
+      - attach_workspace:
+          at: artifacts
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            echo "about to publish to tag ${CIRCLE_TAG}"
+            tar -xvf artifacts/buildevents.tar
+            rm -rf artifacts/buildevents.tar
+            ls -l ./artifacts
+            ghr -draft -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts
 
 workflows:
   build:
     jobs:
-      - setup:
-          filters:
-            tags:
-              only: /.*/
-      - watch:
-          context: Honeycomb Secrets for Public Repos
-          requires:
-            - setup
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              ignore:
-              - /pull\/.*/
-              - /dependabot\/.*/
       - test:
-          requires:
-            - setup
           filters:
             tags:
               only: /.*/
