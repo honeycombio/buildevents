@@ -56,11 +56,6 @@ jobs:
           os: linux
           arch: arm64
       - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents-* artifacts/
-
-      ## just to serve as an example, let's add the size of the artifacts built to our trace
-      - run: echo "size=$(du -sb artifacts | cut -f 1)" >> $BASH_ENV
-
-      ## ok, carry on and upload the artifacts
       - run: tar -cvf artifacts/buildevents.tar artifacts/buildevents-*
       - persist_to_workspace:
           root: artifacts
