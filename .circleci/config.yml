@@ -23,7 +23,6 @@ commands:
           GOOS=<< parameters.os >> \
           GOARCH=<< parameters.arch >> \
           CGO_ENABLED=0 \
-          buildevents cmd $CIRCLE_WORKFLOW_ID $BUILDEVENTS_SPAN_ID go_build -- \
           go build -ldflags "-X main.Version=${CIRCLE_TAG}" \
           -o $GOPATH/bin/buildevents-<< parameters.os >>-<< parameters.arch >> \
           ./...
