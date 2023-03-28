@@ -7,7 +7,7 @@ require (
 	github.com/honeycombio/libhoney-go v1.17.1
 	github.com/jszwedko/go-circleci v0.3.0
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
-	github.com/spf13/cobra v1.5.0
+	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
 )
 
