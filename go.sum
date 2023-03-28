@@ -108,8 +108,9 @@ github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB7
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
 github.com/honeycombio/beeline-go v1.11.1 h1:cyrfwgxM32DKzUhZFJ0KLbPkoyf5lHOyn+7GISwEVZQ=
 github.com/honeycombio/beeline-go v1.11.1/go.mod h1:VTUrnK49oSsWme20E+94XTn1qofDYR56drIJ2bRsJBo=
-github.com/honeycombio/libhoney-go v1.17.1 h1:qOHGm5lqzj82O5RvsqTM0OhbEUxY+t9WoKPaD9FJJ5o=
 github.com/honeycombio/libhoney-go v1.17.1/go.mod h1:KwbcXkqUbH20x3MpfSt/kdvlog3FFdEnouqYD3XKXLY=
+github.com/honeycombio/libhoney-go v1.18.0 h1:OYHOP381r3Ea76BhUYeza8PUTMDp8MByoOxDn3qtEq8=
+github.com/honeycombio/libhoney-go v1.18.0/go.mod h1:KwbcXkqUbH20x3MpfSt/kdvlog3FFdEnouqYD3XKXLY=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/inconshreveable/mousetrap v1.0.1 h1:U3uMjPSQEBMNp1lFxmllqCPM6P5u/Xq7Pgzkat/bFNc=
 github.com/inconshreveable/mousetrap v1.0.1/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
