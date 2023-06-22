@@ -3,7 +3,7 @@ version: 2.1
 executors:
   linuxgo:
     docker:
-      - image: cimg/go:1.18
+      - image: cimg/go:1.20
 
 commands:
   go-build:
@@ -11,7 +11,7 @@ commands:
       os:
         description: Target operating system
         type: enum
-        enum: ["linux", "darwin"]
+        enum: ["linux", "darwin", "windows"]
         default: "linux"
       arch:
         description: Target architecture
@@ -55,6 +55,15 @@ jobs:
       - go-build:
           os: linux
           arch: arm64
+      - go-build:
+          os: windows
+          arch: 386
+      - go-build:
+          os: windows
+          arch: amd64
+      - go-build:
+          os: windows
+          arch: arm64
       - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents-* artifacts/
       - run: tar -cvf artifacts/buildevents.tar artifacts/buildevents-*
       - persist_to_workspace:
@@ -85,10 +94,9 @@ jobs:
               exit 1
             fi
 
-
   publish:
     docker:
-      - image: cibuilds/github:0.12.1
+      - image: cibuilds/github:0.13.0
     steps:
       - attach_workspace:
           at: artifacts
