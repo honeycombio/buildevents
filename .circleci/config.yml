@@ -57,7 +57,7 @@ jobs:
           arch: arm64
       - go-build:
           os: windows
-          arch: 386
+          arch: "386"
       - go-build:
           os: windows
           arch: amd64
