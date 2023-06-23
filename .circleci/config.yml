@@ -18,13 +18,17 @@ commands:
         type: enum
         enum: ["386", "amd64", "arm64"]
         default: "amd64"
+      suffix:
+        description: Optional suffix
+        type: string
+        default: ""
     steps:
       - run: |
           GOOS=<< parameters.os >> \
           GOARCH=<< parameters.arch >> \
           CGO_ENABLED=0 \
           go build -ldflags "-X main.Version=${CIRCLE_TAG}" \
-          -o $GOPATH/bin/buildevents-<< parameters.os >>-<< parameters.arch >> \
+          -o $GOPATH/bin/buildevents-<< parameters.os >>-<< parameters.arch >><< parameters.suffix >> \
           ./...
 
 jobs:
@@ -58,12 +62,15 @@ jobs:
       - go-build:
           os: windows
           arch: "386"
+          suffix: ".exe"
       - go-build:
           os: windows
           arch: amd64
+          suffix: ".exe"
       - go-build:
           os: windows
           arch: arm64
+          suffix: ".exe"
       - run: mkdir -v artifacts; cp -v $GOPATH/bin/buildevents-* artifacts/
       - run: tar -cvf artifacts/buildevents.tar artifacts/buildevents-*
       - persist_to_workspace:
