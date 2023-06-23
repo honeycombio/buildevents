@@ -49,11 +49,36 @@ curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/lates
 chmod 755 buildevents
 ```
 
-**macOS:**
+**macOS, amd64:**
 
 ```
 curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-darwin-amd64
 chmod 755 buildevents
+```
+
+**macOS, arm64:**
+
+```
+curl -L -o buildevents https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-darwin-arm64
+chmod 755 buildevents
+```
+
+**windows, 32-bit x86:**
+
+```
+curl.exe -L -o buildevents.exe https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-windows-386.exe
+```
+
+**windows, 64-bit x86:**
+
+```
+curl.exe -L -o buildevents.exe https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-windows-amd64.exe
+```
+
+**windows, arm64:**
+
+```
+curl.exe -L -o buildevents.exe https://github.com/honeycombio/buildevents/releases/latest/download/buildevents-windows-arm64.exe
 ```
 
 If this doesn't work for you, please [let us know](mailto:support@honeycomb.io) - we'd love to hear what would work.
