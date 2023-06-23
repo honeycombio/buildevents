@@ -1,6 +1,21 @@
 # buildevents changelog
 
 
+## 0.14.0 - 2023-06-23
+
+### Enhancements
+
+- add support for Windows artifacts (#193) | [@jharley](https://github.com/jharley)
+
+### Maintenance
+
+- Bump Go to 1.20 (#193) | [@jharley](https://github.com/jharley)
+- Bump github.com/spf13/cobra from 1.6.1 to 1.7.0 (#191) | [dependabot](https://github.com/dependabot)
+- Bump github.com/stretchr/testify from 1.8.0 to 1.8.4 (#178, #187, #192) | [dependabot](https://github.com/dependabot)
+- Bump github.com/honeycombio/beeline-go from 1.9.0 to 1.11.1 (#170, #179) | [dependabot](https://github.com/dependabot)
+- Bump github.com/honeycombio/libhoney-go from 1.16.0 to 1.18.0 (#180) | [dependabot](https://github.com/dependabot)
+- Bump github.com/spf13/cobra from 1.5.0 to 1.7.0 (#181, #191) | [dependabot](https://github.com/dependabot)
+
 ## 0.13.0 - 2022-08-25
 
 ### Enhancements
