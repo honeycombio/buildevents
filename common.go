@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -34,6 +35,9 @@ func createEvent(cfg *libhoney.Config, provider string, traceID string) *libhone
 	}
 	ev.AddField("trace.trace_id", traceID)
 	ev.AddField("meta.version", Version)
+
+	ev.AddField("meta.os", runtime.GOOS)
+	ev.AddField("meta.arch", runtime.GOARCH)
 
 	return ev
 }
