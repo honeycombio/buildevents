@@ -1,5 +1,15 @@
 # buildevents changelog
 
+## 0.15.0 - 2023-07-17
+
+### Enhancements
+
+- add `meta.arch` and `meta.os` fields to spans (#200) | [@ismith](https://github.com/ismith)
+
+### Maintenance
+
+- Bump github.com/honeycombio/beeline-go from 1.11.1 to 1.12.0 (#198) | [dependabot](https://github.com/dependabot)
+- Bump github.com/honeycombio/libhoney-go from 1.19.0 to 1.20.0 (#199) | [dependabot](https://github.com/dependabot)
 
 ## 0.14.0 - 2023-06-23
 
