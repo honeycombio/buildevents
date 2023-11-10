@@ -82,12 +82,21 @@ func providerInfo(provider string, ev *libhoney.Event) {
 
 	case "buildkite", "buildkiteci", "build-kite":
 		envVars = map[string]string{
-			"BUILDKITE_BRANCH":            "branch",
-			"BUILDKITE_BUILD_NUMBER":      "build_num",
-			"BUILDKITE_BUILD_URL":         "build_url",
-			"BUILDKITE_PULL_REQUEST":      "pr_number",
-			"BUILDKITE_PULL_REQUEST_REPO": "pr_repo",
-			"BUILDKITE_REPO":              "repo",
+			"BUILDKITE_AGENT_ID":                    "agent_id",
+			"BUILDKITE_AGENT_META_DATA_OS":          "agent_os",
+			"BUILDKITE_AGENT_META_DATA_QUEUE":       "agent_queue",
+			"BUILDKITE_AGENT_META_DATA_RUNTIMETYPE": "agent_runtime",
+			"BUILDKITE_BRANCH":                      "branch",
+			"BUILDKITE_BUILD_CREATOR":               "build_user",
+			"BUILDKITE_BUILD_NUMBER":                "build_num",
+			"BUILDKITE_BUILD_URL":                   "build_url",
+			"BUILDKITE_PULL_REQUEST":                "pr_number",
+			"BUILDKITE_PULL_REQUEST_REPO":           "pr_repo",
+			"BUILDKITE_REPO":                        "repo",
+			"BUILDKITE_PIPELINE_ID":                 "pipeline_id",
+			"BUILDKITE_PIPELINE_NAME":               "pipeline_name",
+			"BUILDKITE_PIPELINE_PROVIDER":           "pipeline_provider",
+			"BUILDKITE_PIPELINE_SLUG":               "pipeline_slug",
 		}
 	case "jenkinsx", "jenkins-x":
 		envVars = map[string]string{
