@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -246,6 +247,13 @@ func bkCheckJobs(client *buildkite.Client, cfg bkWatchConfig) (anyRunning bool, 
 		// see https://buildkite.com/docs/pipelines/defining-steps#job-states
 		// for a graph of all the states a job can be in.
 
+		if job.State == nil {
+			// not sure how this can happen..  maybe a BK wait step in the pipeline?
+			b, _ := json.Marshal(job)
+			fmt.Printf("nil job state for %s\n", string(b))
+			continue
+		}
+
 		switch *job.State {
 		case "pending":
 			// pending means a job will either start or be skipped soon, so we
@@ -322,6 +330,10 @@ func bkSummarizeJobs(jobs []*buildkite.Job) string {
 	// look at all the jobs and count how many are in each state
 	countByState := map[string]int{}
 	for _, job := range jobs {
+		if job.State == nil {
+			countByState["nil-job-state"]++
+			continue
+		}
 		countByState[*job.State]++
 	}
 
