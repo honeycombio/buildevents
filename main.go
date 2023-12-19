@@ -29,7 +29,6 @@ func main() {
 	var config libhoney.Config
 	var filename string
 	var ciProvider string
-	var wcfg watchConfig
 	var serviceName string
 
 	root := commandRoot(&config, &filename, &ciProvider, &serviceName)
@@ -39,7 +38,7 @@ func main() {
 		commandBuild(&config, &filename, &ciProvider),
 		commandStep(&config, &filename, &ciProvider),
 		commandCmd(&config, &filename, &ciProvider),
-		commandWatch(&config, &filename, &ciProvider, &wcfg),
+		commandBKWatch(&config, &filename, &ciProvider),
 	)
 
 	// Do the work

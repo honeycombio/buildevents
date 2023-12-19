@@ -31,8 +31,9 @@ type watchConfig struct {
 	jobName    string
 }
 
-func commandWatch(cfg *libhoney.Config, filename *string, ciProvider *string, wcfg *watchConfig) *cobra.Command {
+func commandWatch(cfg *libhoney.Config, filename *string, ciProvider *string) *cobra.Command {
 	// WATCH eg: buildevents watch $TRAVIS_BUILD_ID
+	var wcfg watchConfig
 	watchCmd := &cobra.Command{
 		Use:   "watch BUILD_ID",
 		Short: "Polls the CircleCI API and waits until all jobs have finished.",
@@ -57,7 +58,7 @@ build with the appropriate timers.`,
 
 			providerInfo(*ciProvider, ev)
 
-			ok, startTime, endTime, err := waitCircle(context.Background(), *wcfg)
+			ok, startTime, endTime, err := waitCircle(context.Background(), wcfg)
 			if err != nil {
 				fmt.Printf("buildevents - Error detected: %s\n", err.Error())
 				return err
