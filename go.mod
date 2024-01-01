@@ -3,7 +3,7 @@ module github.com/honeycombio/buildevents
 go 1.15
 
 require (
-	github.com/honeycombio/beeline-go v1.13.0
+	github.com/honeycombio/beeline-go v1.14.0
 	github.com/honeycombio/libhoney-go v1.20.0
 	github.com/jszwedko/go-circleci v0.3.0
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
