@@ -267,15 +267,21 @@ func bkCheckJobs(client *buildkite.Client, cfg bkWatchConfig) (anyRunning bool, 
 			// The wait job failed?  I guess the only way this can happen is if
 			// one of the jobs before it in the pipeline also failed?  we'll
 			// consider this a failure.
-			anyFailed = true
+			if !job.SoftFailed {
+				anyFailed = true
+			}
 		case "blocked":
 			anyRunning = true
 		case "blocked_failed":
-			anyFailed = true
+			if !job.SoftFailed {
+				anyFailed = true
+			}
 		case "unblocked":
 			anyRunning = true
 		case "unblocked_failed":
-			anyFailed = true
+			if !job.SoftFailed {
+				anyFailed = true
+			}
 		case "scheduled":
 			// the api also returns this state for limiting/limited jobs
 			anyRunning = true
@@ -288,7 +294,9 @@ func bkCheckJobs(client *buildkite.Client, cfg bkWatchConfig) (anyRunning bool, 
 		case "passed":
 			continue
 		case "failed":
-			anyFailed = true
+			if !job.SoftFailed {
+				anyFailed = true
+			}
 		case "canceling":
 			// cancelation is intentional cancelling of the job, via the UI or the API.
 			anyRunning = true
@@ -297,7 +305,9 @@ func bkCheckJobs(client *buildkite.Client, cfg bkWatchConfig) (anyRunning bool, 
 		case "timing_out":
 			anyRunning = true
 		case "timed_out":
-			anyFailed = true
+			if !job.SoftFailed {
+				anyFailed = true
+			}
 		case "skipped":
 			// skipped jobs are jobs that aren't run because a newer build was started
 			// and "build skipping" is enabled.  Don't count them.
