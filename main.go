@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"os/exec"
@@ -44,6 +45,8 @@ func main() {
 	// Do the work
 	if err := root.Execute(); err != nil {
 		libhoney.Close()
+
+		fmt.Println("buildevent error:", err.Error())
 
 		// If the underlying command returned a specific exit code, we need
 		// to exit it with it as well to act transparently.
