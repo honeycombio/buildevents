@@ -206,8 +206,9 @@ func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("unable to infer UI host: %s", uiHost)
 	}
+
 	pathSegments := []string{team}
-	if !isClassic(cfg.APIKey) {
+	if !cfg.IsClassic() {
 		pathSegments = append(pathSegments, "environments", environment)
 	}
 	pathSegments = append(pathSegments, "datasets", slugify(cfg.Dataset), "trace")
@@ -223,14 +224,8 @@ func buildURL(cfg *libhoney.Config, traceID string, ts int64) (string, error) {
 	return u.String(), nil
 }
 
-// classic keys are always 32 bytes, non-classic are less than that
-// classic keys are also hex but that doesn't matter here
-func isClassic(key string) bool {
-	return len(key) == 32
-}
-
-func ifClassic(key, classicVal, elseVal string) string {
-	if isClassic(key) {
+func ifClassic(cfg *libhoney.Config, classicVal, elseVal string) string {
+	if cfg.IsClassic() {
 		return classicVal
 	}
 	return elseVal

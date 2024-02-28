@@ -33,8 +33,8 @@ a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 			providerInfo(*ciProvider, ev)
 
 			ev.Add(map[string]interface{}{
-				"service_name":  ifClassic(cfg.APIKey, "build", cfg.Dataset),
-				"service.name":  ifClassic(cfg.APIKey, "build", cfg.Dataset),
+				"service_name":  ifClassic(cfg, "build", cfg.Dataset),
+				"service.name":  ifClassic(cfg, "build", cfg.Dataset),
 				"command_name":  "build",
 				"trace.span_id": traceID,
 				"name":          "build " + traceID,

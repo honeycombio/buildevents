@@ -20,7 +20,7 @@ The buildevents executable creates Honeycomb events and tracing information
 about your Continuous Integration builds.`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			quiet, _ := cmd.Flags().GetBool("quiet")
-			if isClassic(cfg.APIKey) {
+			if cfg.IsClassic() {
 				// if we're in classic mode, we want to behave the same as we always have
 				if cfg.Dataset == "" {
 					cfg.Dataset = "buildevents"
