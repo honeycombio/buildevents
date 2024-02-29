@@ -1,5 +1,17 @@
 # buildevents changelog
 
+## 0.16.0 - 2024-02-29
+
+### Enhancements
+
+- upgrade to libhoney-go 1.21.0 to support classic ingest keys (#208) | [@cewkrupa](https://github.com/cewkrupa)
+
+### Maintenance
+
+- Bump github.com/honeycombio/beeline-go from 1.13.0 to 1.14.0 (#206) | [dependabot](https://github.com/dependabot)
+- Bump github.com/spf13/cobra from 1.7.0 to 1.8.0 (#205) | [dependabot](https://github.com/dependabot)
+- Bump github.com/honeycombio/beeline-go from 1.12.0 to 1.13.0 (#202) | [dependabot](https://github.com/dependabot)
+
 ## 0.15.0 - 2023-07-17
 
 ### Enhancements
