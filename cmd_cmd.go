@@ -81,8 +81,8 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": stepID,
 				"trace.span_id":   spanID,
-				"service_name":    ifClassic(cfg.APIKey, "cmd", cfg.Dataset),
-				"service.name":    ifClassic(cfg.APIKey, "cmd", cfg.Dataset),
+				"service_name":    ifClassic(cfg, "cmd", cfg.Dataset),
+				"service.name":    ifClassic(cfg, "cmd", cfg.Dataset),
 				"command_name":    "cmd",
 				"name":            name,
 				"duration_ms":     dur / time.Millisecond,

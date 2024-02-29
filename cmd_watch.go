@@ -69,11 +69,11 @@ build with the appropriate timers.`,
 			}
 
 			ev.Add(map[string]interface{}{
-				"service_name":  ifClassic(cfg.APIKey, "watch", cfg.Dataset),
-				"service.name":  ifClassic(cfg.APIKey, "watch", cfg.Dataset),
+				"service_name":  ifClassic(cfg, "watch", cfg.Dataset),
+				"service.name":  ifClassic(cfg, "watch", cfg.Dataset),
 				"command_name":  "watch",
 				"trace.span_id": traceID,
-				"name":          ifClassic(cfg.APIKey, "watch "+traceID, "watch"),
+				"name":          ifClassic(cfg, "watch "+traceID, "watch"),
 				"status":        status,
 				"duration_ms":   endTime.Sub(startTime) / time.Millisecond,
 				"source":        "buildevents",
