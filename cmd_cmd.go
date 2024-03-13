@@ -123,6 +123,8 @@ func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool,
 
 	cmd.Env = append(os.Environ(),
 		"HONEYCOMB_TRACE="+propagation.MarshalHoneycombTraceContext(prop),
+		"HONEYCOMB_TRACE_ID="+prop.TraceID,
+		"HONEYCOMB_PARENT_ID="+prop.ParentID,
 	)
 
 	cmd.Stdout = os.Stdout
