@@ -25,6 +25,8 @@ type bkWatchConfig struct {
 	jobID        string
 }
 
+const numBKChecks = 6
+
 func commandBKWatch(cfg *libhoney.Config, filename *string, ciProvider *string) *cobra.Command {
 	// WATCH eg: buildevents bk_watch $BUILDKITE_BUILD_ID
 	var wcfg bkWatchConfig
@@ -159,8 +161,8 @@ func waitBuildkite(parent context.Context, cfg bkWatchConfig) (passed bool, star
 	// In that case there are no jobs running and some jobs blocked that could
 	// still run. If we think the build has passed and finished, let's give it a
 	// buffer to spin up new jobs before really considering it done. This buffer
-	// will check for up to 2 minutes
-	checksLeft := numChecks + 1 // +1 because we decrement at the beginning of the loop
+	// will check for up to 30 seconds
+	checksLeft := numBKChecks + 1 // +1 because we decrement at the beginning of the loop
 
 	go func() {
 		defer close(done)
@@ -179,7 +181,7 @@ func waitBuildkite(parent context.Context, cfg bkWatchConfig) (passed bool, star
 			anyRunning, anyFailed, err := bkCheckJobs(client, cfg)
 			if !anyRunning {
 				// if this is the first time we think we're finished store the timestamp
-				if checksLeft >= numChecks {
+				if checksLeft >= numBKChecks {
 					ended = time.Now()
 				}
 
@@ -216,7 +218,7 @@ func waitBuildkite(parent context.Context, cfg bkWatchConfig) (passed bool, star
 			// reset the check counter so we try again next time we think we're
 			// finished.
 			passed = false
-			checksLeft = numChecks
+			checksLeft = numBKChecks
 		}
 	}()
 
