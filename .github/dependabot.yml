@@ -11,8 +11,6 @@ updates:
       interval: "monthly"
     labels:
       - "type: dependencies"
-    reviewers:
-      - "honeycombio/api-team"
     commit-message:
       prefix: "maint"
       include: "scope"
