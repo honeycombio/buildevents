@@ -14,3 +14,7 @@ updates:
     commit-message:
       prefix: "maint"
       include: "scope"
+    groups:
+      examples:
+        patterns:
+          - "*"
