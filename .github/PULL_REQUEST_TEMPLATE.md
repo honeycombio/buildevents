@@ -12,9 +12,8 @@ Please see our [OSS process document](https://github.com/honeycombio/home/blob/m
 
 ## Which problem is this PR solving?
 
--
+- Closes #<enter issue here>
 
 ## Short description of the changes
 
--
-
+## How to verify that this has the expected result

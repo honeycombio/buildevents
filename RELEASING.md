@@ -1,10 +1,16 @@
-# Creating a new release
+# Releasing
 
-1. Use [go-licenses](https://github.com/google/go-licenses) to ensure all project dependency licenses are correclty represented in this repository:
-  1. Install go-licenses (if not already installed) `go install github.com/google/go-licenses@latest`
-  2. Run and save licenses `go-licenses save github.com/honeycombio/buildevents --save_path="./LICENSES"`
-  3. If there are any changes, submit PR to update licenses.
-2. Prep update PR for the [orb](https://github.com/honeycombio/buildevents-orb) with the new version of buildevents.
-3. Add new entry in the CHANGELOG.
-4. Once the above change is merged into `main`, tag `main` with the new version, e.g. `v0.6.1`. Push the tags. This will kick off CI, which will create a draft GitHub release.
-5. Update release notes using the CHANGELOG entry on the new draft GitHub release, and publish it.
+- Use [go-licenses](https://github.com/google/go-licenses) to ensure all project dependency licenses are correctly represented in this repository:
+  - Install go-licenses (if not already installed) `go install github.com/google/go-licenses@latest`
+  - Run and save licenses `go-licenses save github.com/honeycombio/buildevents --save_path="./LICENSES"`
+  - If there are any changes, submit a separate PR to update licenses.
+- Prep update PR for the [orb](https://github.com/honeycombio/buildevents-orb) with the new version of buildevents.
+- Update `CHANGELOG.md` with the changes since the last release. Consider automating with a command such as these two:
+  - `git log $(git describe --tags --abbrev=0)..HEAD --no-merges --oneline > new-in-this-release.log`
+  - `git log --pretty='%C(green)%d%Creset- %s | [%an](https://github.com/)'`
+- Commit changes, push, and open a release preparation pull request for review.
+- Once the pull request is merged, fetch the updated `main` branch.
+- Apply a tag for the new version on the merged commit (e.g. `git tag -a v2.3.1 -m "v2.3.1"`)
+- Push the tag upstream (this will kick off the release pipeline in CI) e.g. `git push origin v2.3.1`
+- Ensure that there is a draft GitHub release created as part of CI publish steps.
+- Click "generate release notes" in GitHub for full changelog notes and any new contributors.
