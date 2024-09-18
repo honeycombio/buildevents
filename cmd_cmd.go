@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"os"
@@ -47,6 +48,7 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 			name := strings.TrimSpace(args[2])
 			quiet, _ := cmd.Flags().GetBool("quiet")
 			shell, _ := cmd.Flags().GetString("shell")
+			useW3, _ := cmd.Flags().GetBool("w3")
 
 			var quoted []string
 			for _, s := range args[3:] {
@@ -75,7 +77,7 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 				ParentID:     spanID,
 				TraceContext: localFields,
 			}
-			err := runCommand(subcmd, prop, quiet, shell)
+			err := runCommand(subcmd, prop, quiet, shell, useW3)
 			dur := time.Since(start)
 
 			ev.Add(map[string]interface{}{
@@ -115,15 +117,23 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 	return execCmd
 }
 
-func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool, shell string) error {
+func runCommand(subcmd string, prop *propagation.PropagationContext, quiet bool, shell string, useW3Context bool) error {
 	if !quiet {
 		fmt.Println("running", shell, "-c", subcmd)
 	}
 	cmd := exec.Command(shell, "-c", subcmd)
 
-	cmd.Env = append(os.Environ(),
-		"HONEYCOMB_TRACE="+propagation.MarshalHoneycombTraceContext(prop),
-	)
+	if useW3Context {
+		_, headers := propagation.MarshalW3CTraceContext(context.Background(), prop)
+		cmd.Env = append(os.Environ(),
+			"HONEYCOMB_W3_TRACEPARENT="+headers[propagation.TraceparentHeader],
+			"HONEYCOMB_W3_TRACESTATE="+headers["tracestate"],
+		)
+	} else {
+		cmd.Env = append(os.Environ(),
+			"HONEYCOMB_TRACE="+propagation.MarshalHoneycombTraceContext(prop),
+		)
+	}
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

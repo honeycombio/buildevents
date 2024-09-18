@@ -296,7 +296,10 @@ The event that arrives at Honeycomb might look like:
 
 ## Attaching more traces from your build and test process
 
-Every command running through `buildevents cmd` will receive a `HONEYCOMB_TRACE` environment variable that contains a marshalled trace propagation context. This can be used to connect more spans to this trace.
+Every command running through `buildevents cmd` will receive a `HONEYCOMB_TRACE` environment variable that contains a marshalled Honeycomb Beeline trace propagation context. This can be used to connect more spans to this trace.
+
+You may also use a W3 propagation context by passing the `--w3` flag to `buildevents cmd`. When this flag is set,
+every command will instead receive the `HONEYCOMB_W3_TRACEPARENT` and `HONEYCOMB_W3_TRACESTATE` environment variables.
 
 Ruby Beeline example:
 ```ruby
