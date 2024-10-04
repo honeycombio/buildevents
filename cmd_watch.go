@@ -251,6 +251,8 @@ func evalWorkflow(client *circleci.Client, wfID string, jobName string) (anyRunn
 			// it's not configured to run this build (because of a tag or something)
 			anyBlocked = true
 			continue
+		case "not_running":
+			fallthrough
 		case "queued":
 			// queued means a job is due to start running soon, so we consider it running
 			// already.
