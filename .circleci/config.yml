@@ -39,6 +39,7 @@ jobs:
       - run:
           name: go_test
           command: go test -v ./...
+      - run: make verify-licenses
 
   build:
     executor: linuxgo
