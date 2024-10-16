@@ -1,5 +1,21 @@
 # buildevents changelog
 
+## v0.17.0 - 2024-10-16
+
+### Maintenance
+
+- maint: update go version and docs (#223) | [Jamie Danielson](https://github.com/JamieDanielson)
+- maint(go): update to go1.23 (#222) | [Liz Fong-Jones](https://github.com/lizthegrey)
+- maint(deps): bump the examples group with 3 updates (#218) | [dependabot[bot]](https://github.com/dependabot[bot])
+- docs: update vulnerability reporting process (#219) | [Robb Kidd](https://github.com/robbkidd)
+- maint: update repo for pipeline team ownership (#217) | [Jamie Danielson](https://github.com/JamieDanielson)
+- maint(deps): bump github.com/stretchr/testify from 1.8.4 to 1.9.0 (#214) | [dependabot[bot]](https://github.com/dependabot[bot])
+- maint(deps): bump github.com/honeycombio/beeline-go from 1.14.0 to 1.15.0 (#212) | [dependabot[bot]](https://github.com/dependabot[bot])
+
+### Fixes
+
+- fix(watch): not_running is the new queued (#221) | [Liz Fong-Jones](https://github.com/lizthegrey)
+
 ## 0.16.0 - 2024-02-29
 
 ### Enhancements
