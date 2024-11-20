@@ -236,7 +236,6 @@ type evalWorkflowResponse struct {
 // and decides whether the build has finished and if finished, whether it
 // failed. If an error is returned, it represents an error talking to the
 // CircleCI API, not an error with the workflow.
-// func evalWorkflow(client *circleci.Client, wfID string, jobName string) (anyRunning bool, anyFailed bool, anyBlocked bool, err error) {
 func evalWorkflow(client *circleci.Client, wfID string, jobName string) (evalWorkflowResponse, error) {
 	fmt.Printf("%s: polling for jobs: ", time.Now().Format(time.StampMilli))
 	wfJobs, err := getJobs(client, wfID)
