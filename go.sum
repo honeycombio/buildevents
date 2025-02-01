@@ -17,12 +17,12 @@ github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 h1:7HZCaLC5+BZpm
 github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4/go.mod h1:5tD+neXqOorC30/tWg0LCSkrqj/AR6gu8yY8/fpw1q0=
 github.com/honeycombio/beeline-go v1.18.0 h1:usCoLWAX0kMHPOd9+4sVM8MH0FZTTKaBm3UuVTb4ypg=
 github.com/honeycombio/beeline-go v1.18.0/go.mod h1:EQ+Wz76mVNAT98hwahTqna61y/XVVxEqWyh4k87BXSM=
-github.com/honeycombio/libhoney-go v1.24.0 h1:PPgVrd8FOiQeL24FOEuhF9SFA3oDgaA/AU/Agu2ZKkA=
-github.com/honeycombio/libhoney-go v1.24.0/go.mod h1:oW9gF/appfQoDjtXfcfH5hp5v3F0xpTy42+NBRCYk9k=
+github.com/honeycombio/libhoney-go v1.25.0 h1:r33tlX90HtafK0bgRcjfNnsrJ9ZMTKuI/1DYaOFCc1o=
+github.com/honeycombio/libhoney-go v1.25.0/go.mod h1:Fc0HjqlwYf5xy6H34EItpOverAGbCixnYOX3YTUQovg=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
-github.com/klauspost/compress v1.17.9/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
+github.com/klauspost/compress v1.17.11 h1:In6xLpyWOi1+C7tXUUWv2ot1QvBjxevKAaI6IXrJmUc=
+github.com/klauspost/compress v1.17.11/go.mod h1:pMDklpSncoRMuLFrf1W9Ss9KT+0rH90U12bZKk7uwG0=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 h1:T+h1c/A9Gawja4Y9mFVWj2vyii2bbUNDw3kt9VxK2EY=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
 github.com/maplebed/go-circleci v0.0.0-20191121000249-089ef54587e5 h1:MkahNIXXDmLmqo3rHm8lS6OwiXSNHQdlrSAd/V9ywhc=
