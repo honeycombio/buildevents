@@ -57,7 +57,7 @@ build with the appropriate timers.`,
 
 			providerInfo(*ciProvider, ev)
 
-			ok, startTime, endTime, err := waitCircle(context.Background(), *wcfg)
+			ok, startTime, endTime, jobsFailed, err := waitCircle(context.Background(), *wcfg)
 			if err != nil {
 				fmt.Printf("buildevents - Error detected: %s\n", err.Error())
 				return err
@@ -77,6 +77,7 @@ build with the appropriate timers.`,
 				"status":        status,
 				"duration_ms":   endTime.Sub(startTime) / time.Millisecond,
 				"source":        "buildevents",
+				"jobs_failed":   strings.Join(jobsFailed, ","),
 			})
 			ev.Timestamp = startTime
 
@@ -123,15 +124,15 @@ build with the appropriate timers.`,
 // the time it started, and the time it ended (which will be either nowish or
 // sometime in the past if we timed out). The err returned is for errors polling
 // the CircleCI API, not errors in the build itself.
-func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, ended time.Time, err error) {
+func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, ended time.Time, jobsFailed []string, err error) {
 	// we need a token to query anything; give a helpful error if we have no token
 	if cfg.circleKey == "" {
-		return false, time.Now(), time.Now().Add(time.Second), fmt.Errorf("circle token required to poll the API")
+		return false, time.Now(), time.Now().Add(time.Second), nil, fmt.Errorf("circle token required to poll the API")
 	}
 	client := &circleci.Client{Token: cfg.circleKey}
 	wf, err := client.GetWorkflowV2(cfg.workflowID)
 	if err != nil {
-		return false, time.Now(), time.Now().Add(time.Second), err
+		return false, time.Now(), time.Now().Add(time.Second), nil, err
 	}
 	started = wf.CreatedAt
 	ended = time.Now() // set a default in case we early exit
@@ -162,20 +163,22 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 			default:
 			}
 
-			anyRunning, anyFailed, anyBlocked, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
-			if !anyRunning {
+			resp, err := evalWorkflow(client, cfg.workflowID, cfg.jobName)
+
+			if !resp.anyRunning {
 				// if this is the first time we think we're finished store the timestamp
 				if checksLeft >= numChecks {
 					ended = time.Now()
 				}
 
-				if !anyBlocked && err == nil {
+				if !resp.anyBlocked && err == nil {
 					// we are legit done.
-					passed = !anyFailed
+					passed = !resp.anyFailed
 					if passed {
 						fmt.Println("Build passed!")
 					} else {
 						fmt.Println("Build failed!")
+						jobsFailed = resp.failedJobs
 					}
 					return
 				}
@@ -184,11 +187,12 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 				checksLeft--
 				if checksLeft <= 0 {
 					// we're done checking.
-					passed = !anyFailed
+					passed = !resp.anyFailed
 					if passed {
 						fmt.Println("Build passed!")
 					} else {
 						fmt.Println("Build failed!")
+						jobsFailed = resp.failedJobs
 					}
 					return
 				}
@@ -198,9 +202,10 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 					fmt.Printf("Querying the CirlceCI API failed with %s; trying %d more times before giving up.\n", err.Error(), checksLeft)
 					continue
 				}
-				if anyFailed {
+				if resp.anyFailed {
 					// don't bother rechecking if a job has failed
 					fmt.Printf("Build failed!\n")
+					jobsFailed = resp.failedJobs
 					ended = time.Now()
 					return
 				}
@@ -217,24 +222,34 @@ func waitCircle(parent context.Context, cfg watchConfig) (passed bool, started, 
 	}()
 
 	<-done
-	return passed, started, ended, nil
+	return passed, started, ended, jobsFailed, nil
+}
+
+type evalWorkflowResponse struct {
+	anyRunning bool
+	anyFailed  bool
+	anyBlocked bool
+	failedJobs []string
 }
 
 // evalWorkflow looks at the CircleCI API for the list of jobs in this workflow
 // and decides whether the build has finished and if finished, whether it
 // failed. If an error is returned, it represents an error talking to the
 // CircleCI API, not an error with the workflow.
-func evalWorkflow(client *circleci.Client, wfID string, jobName string) (anyRunning bool, anyFailed bool, anyBlocked bool, err error) {
+func evalWorkflow(client *circleci.Client, wfID string, jobName string) (evalWorkflowResponse, error) {
 	fmt.Printf("%s: polling for jobs: ", time.Now().Format(time.StampMilli))
 	wfJobs, err := getJobs(client, wfID)
 	if err != nil {
 		fmt.Printf("error polling: %s\n", err.Error())
-		return true, true, false, err
+		return evalWorkflowResponse{
+			anyRunning: true,
+			anyFailed:  true,
+		}, err
 	}
 	fmt.Println(summarizeJobList(wfJobs))
 
-	anyRunning = false
-	anyBlocked = false
+	// defaults all to false
+	resp := evalWorkflowResponse{}
 	for _, job := range wfJobs {
 		// skip ourself so we don't wait if we're the only job running
 		if job.Name == jobName {
@@ -249,7 +264,7 @@ func evalWorkflow(client *circleci.Client, wfID string, jobName string) (anyRunn
 			// blocked means it can't yet run, but that could be because either
 			// it's waiting on a running job, depends on a failed job, or
 			// it's not configured to run this build (because of a tag or something)
-			anyBlocked = true
+			resp.anyBlocked = true
 			continue
 		case "not_running":
 			// not_running is the same as queued
@@ -257,16 +272,17 @@ func evalWorkflow(client *circleci.Client, wfID string, jobName string) (anyRunn
 		case "queued":
 			// queued means a job is due to start running soon, so we consider it running
 			// already.
-			anyRunning = true
+			resp.anyRunning = true
 		case "failed":
-			anyFailed = true
+			resp.anyFailed = true
+			resp.failedJobs = append(resp.failedJobs, job.Name)
 			continue
 		case "running":
-			anyRunning = true
+			resp.anyRunning = true
 		}
 	}
 
-	return anyRunning, anyFailed, anyBlocked, nil
+	return resp, nil
 }
 
 // getJobs queries the CircleCI API for a list of all jobs in the current workflow
