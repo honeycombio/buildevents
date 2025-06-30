@@ -2,10 +2,10 @@ module github.com/honeycombio/buildevents
 
 go 1.23.0
 
-toolchain go1.23.2
+toolchain go1.24.1
 
 require (
-	github.com/honeycombio/beeline-go v1.18.0
+	github.com/honeycombio/beeline-go v1.19.0
 	github.com/honeycombio/libhoney-go v1.25.0
 	github.com/jszwedko/go-circleci v0.3.0
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
