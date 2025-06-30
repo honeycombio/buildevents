@@ -1,5 +1,17 @@
 # buildevents changelog
 
+## v0.18.0 - 2025-06-30
+
+### Enhancements
+
+- feat: return list of failed jobs in cmd watch (#225) | @cewkrupa
+
+### Maintenance
+
+- maint(deps): bump github.com/honeycombio/beeline-go from 1.18.0 to 1.19.0 in the examples group (#230) | @dependabot
+- maint(deps): bump the examples group across 1 directory with 2 updates (#229) | @dependabot
+- maint(deps): bump the examples group with 3 updates (#227) | @dependabot
+
 ## v0.17.0 - 2024-10-16
 
 ### Fixes
