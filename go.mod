@@ -6,11 +6,11 @@ toolchain go1.24.1
 
 require (
 	github.com/honeycombio/beeline-go v1.19.0
-	github.com/honeycombio/libhoney-go v1.25.0
+	github.com/honeycombio/libhoney-go v1.26.0
 	github.com/jszwedko/go-circleci v0.3.0
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
-	github.com/spf13/cobra v1.9.1
-	github.com/stretchr/testify v1.10.0
+	github.com/spf13/cobra v1.10.1
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
@@ -21,7 +21,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
