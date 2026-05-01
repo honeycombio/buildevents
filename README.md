@@ -178,7 +178,7 @@ The event that arrives at Honeycomb (which has no trace.parent_id since it is th
 
 ## watch
 
-CirclecI requires use of the CircleCI API to detect when workflows start and stop. There is no facility to always run a job after all others, so what works using the Travis-CI `after_failure` will not work on CircleCI. However, the CircleCI API exposes when the current workflow has started, and can be used intsead.
+CirclecI requires use of the CircleCI API to detect when workflows start and stop. There is no facility to always run a job after all others, so what works using the Travis-CI `after_failure` will not work on CircleCI. However, the CircleCI API exposes when the current workflow has started, and can be used instead.
 
 The `watch` command polls the CircleCI API and waits until all jobs have finished (either succeeded, failed, or are blocked). It then reports the final status of the build with the appropriate timers.  `watch` should be invoked in a job all on its own, dependent on only the `setup` job, with only the Trace ID to use. After some time, `watch` will timeout waiting for the build to finish and fail. The timeout default is 10 minutes and can be overridden by setting `BUILDEVENT_TIMEOUT`
 
