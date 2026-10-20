@@ -1,8 +1,6 @@
 module github.com/honeycombio/buildevents
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.27.3
 
 require (
 	github.com/honeycombio/beeline-go v1.19.0
