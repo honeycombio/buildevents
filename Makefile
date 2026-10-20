@@ -29,7 +29,7 @@ test_results:
 
 .PHONY: install-tools
 install-tools:
-	go install github.com/google/go-licenses/v2@v2.0.0-alpha.1
+	go install github.com/google/go-licenses/v2@v2.0.1
 
 .PHONY: update-licenses
 update-licenses: install-tools
