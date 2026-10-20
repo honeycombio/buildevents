@@ -1,5 +1,13 @@
 # buildevents changelog
 
+## v0.19.0 - 2026-10-20
+
+### Maintenance
+
+- maint(go): update to go1.27.3 for CVE-2026-111943 (#237) | [Liz Fong-Jones](https://github.com/lizthegrey)
+- maint(deps): bump minor and patch dependencies (#238) | [Liz Fong-Jones](https://github.com/lizthegrey)
+- chore: remove add-to-project workflow (#236) | [Robb Kidd](https://github.com/robbkidd)
+
 ## v0.18.0 - 2025-06-30
 
 ### Enhancements
