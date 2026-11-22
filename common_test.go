@@ -3,12 +3,15 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/honeycombio/libhoney-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBuildUrl(t *testing.T) {
@@ -52,4 +55,23 @@ func TestBuildUrl(t *testing.T) {
 			assert.Equal(t, expectedUrl, url[:strings.IndexByte(url, '?')])
 		})
 	}
+}
+
+func TestArbitraryFields(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "fields")
+	contents := "count=3 ratio=1.5 ok=true name=hello missing=nan big=inf neg=-Infinity\n"
+	require.NoError(t, os.WriteFile(path, []byte(contents), 0o600))
+
+	ev := libhoney.NewEvent()
+	arbitraryFields(path, ev)
+
+	assert.Equal(t, map[string]interface{}{
+		"count":   float64(3),
+		"ratio":   1.5,
+		"ok":      true,
+		"name":    "hello",
+		"missing": "nan",
+		"big":     "inf",
+		"neg":     "-Infinity",
+	}, ev.Fields())
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/url"
 	"os"
 	"path"
@@ -162,7 +163,9 @@ func arbitraryFields(loc string, ev *libhoney.Event) {
 	err = logfmt.Unmarshal(
 		data,
 		logfmt.HandlerFunc(func(key, val []byte) error {
-			if f, err := strconv.ParseFloat(string(val), 64); err == nil {
+			// NaN and the infinities parse as floats but cannot be encoded as
+			// JSON, which would drop the whole event, so keep them as text.
+			if f, err := strconv.ParseFloat(string(val), 64); err == nil && !math.IsNaN(f) && !math.IsInf(f, 0) {
 				ev.AddField(string(key), f)
 				return nil
 			}
