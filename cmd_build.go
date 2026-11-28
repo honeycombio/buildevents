@@ -11,7 +11,7 @@ import (
 	libhoney "github.com/honeycombio/libhoney-go"
 )
 
-func commandBuild(cfg *libhoney.Config, filename *string, ciProvider *string) *cobra.Command {
+func commandBuild(cfg *libhoney.Config, filename *string, ciProvider *string, envFieldSpecs *[]string) *cobra.Command {
 	// BUILD - eg: buildevents build $TRAVIS_BUILD_ID $BUILD_START success
 	buildCmd := &cobra.Command{
 		Use:   "build [flags] BUILD_ID BUILD_START OUTCOME",
@@ -31,6 +31,7 @@ a URL pointing to the generated trace in Honeycomb to STDOUT.`,
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
+			envFields(*envFieldSpecs, ev)
 
 			ev.Add(map[string]interface{}{
 				"service_name":  ifClassic(cfg, "build", cfg.Dataset),

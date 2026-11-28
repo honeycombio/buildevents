@@ -9,7 +9,7 @@ import (
 	libhoney "github.com/honeycombio/libhoney-go"
 )
 
-func commandStep(cfg *libhoney.Config, filename *string, ciProvider *string) *cobra.Command {
+func commandStep(cfg *libhoney.Config, filename *string, ciProvider *string, envFieldSpecs *[]string) *cobra.Command {
 	// STEP - eg: buildevents step $TRAVIS_BUILD_ID $STAGE_SPAN_ID $STAGE_START script
 	stepCmd := &cobra.Command{
 		Use:   "step [flags] BUILD_ID STEP_ID START_TIME NAME",
@@ -30,6 +30,7 @@ most closely maps to a single job. It should be run at the end of the step.`,
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
+			envFields(*envFieldSpecs, ev)
 
 			ev.Add(map[string]interface{}{
 				"trace.parent_id": traceID,

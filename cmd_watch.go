@@ -31,7 +31,7 @@ type watchConfig struct {
 	jobName    string
 }
 
-func commandWatch(cfg *libhoney.Config, filename *string, ciProvider *string, wcfg *watchConfig) *cobra.Command {
+func commandWatch(cfg *libhoney.Config, filename *string, ciProvider *string, envFieldSpecs *[]string, wcfg *watchConfig) *cobra.Command {
 	// WATCH eg: buildevents watch $TRAVIS_BUILD_ID
 	watchCmd := &cobra.Command{
 		Use:   "watch BUILD_ID",
@@ -56,6 +56,7 @@ build with the appropriate timers.`,
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
+			envFields(*envFieldSpecs, ev)
 
 			ok, startTime, endTime, jobsFailed, err := waitCircle(context.Background(), *wcfg)
 			if err != nil {

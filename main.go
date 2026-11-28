@@ -31,15 +31,16 @@ func main() {
 	var ciProvider string
 	var wcfg watchConfig
 	var serviceName string
+	var envFieldSpecs []string
 
-	root := commandRoot(&config, &filename, &ciProvider, &serviceName)
+	root := commandRoot(&config, &filename, &ciProvider, &serviceName, &envFieldSpecs)
 
 	// Put 'em all together
 	root.AddCommand(
-		commandBuild(&config, &filename, &ciProvider),
-		commandStep(&config, &filename, &ciProvider),
-		commandCmd(&config, &filename, &ciProvider),
-		commandWatch(&config, &filename, &ciProvider, &wcfg),
+		commandBuild(&config, &filename, &ciProvider, &envFieldSpecs),
+		commandStep(&config, &filename, &ciProvider, &envFieldSpecs),
+		commandCmd(&config, &filename, &ciProvider, &envFieldSpecs),
+		commandWatch(&config, &filename, &ciProvider, &envFieldSpecs, &wcfg),
 	)
 
 	// Do the work
