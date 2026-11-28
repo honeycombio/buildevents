@@ -14,7 +14,7 @@ import (
 	libhoney "github.com/honeycombio/libhoney-go"
 )
 
-func commandCmd(cfg *libhoney.Config, filename *string, ciProvider *string) *cobra.Command {
+func commandCmd(cfg *libhoney.Config, filename *string, ciProvider *string, envFieldSpecs *[]string) *cobra.Command {
 	// CMD eg: buildevents cmd $TRAVIS_BUILD_ID $STAGE_SPAN_ID go-test -- go test github.com/honeycombio/hound/...
 	execCmd := &cobra.Command{
 		Use:   "cmd [flags] BUILD_ID STEP_ID NAME -- [shell command to execute]",
@@ -58,6 +58,7 @@ will be launched via "bash -c" using "exec". The shell can be changed with the
 			defer ev.Send()
 
 			providerInfo(*ciProvider, ev)
+			envFields(*envFieldSpecs, ev)
 
 			spanBytes := make([]byte, 16)
 			rand.Read(spanBytes)

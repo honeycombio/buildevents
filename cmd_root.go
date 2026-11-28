@@ -10,7 +10,7 @@ import (
 	libhoney "github.com/honeycombio/libhoney-go"
 )
 
-func commandRoot(cfg *libhoney.Config, filename *string, ciProvider *string, serviceName *string) *cobra.Command {
+func commandRoot(cfg *libhoney.Config, filename *string, ciProvider *string, serviceName *string, envFieldSpecs *[]string) *cobra.Command {
 	root := &cobra.Command{
 		Version: Version,
 		Use:     "buildevents",
@@ -76,6 +76,11 @@ about your Continuous Integration builds.`,
 	root.PersistentFlags().StringVarP(filename, "filename", "f", "", "[env.BUILDEVENT_FILE] the path of a text file holding arbitrary key=val pairs (multi-line-capable, logfmt style) to be added to the Honeycomb event")
 	if fname, ok := os.LookupEnv("BUILDEVENT_FILE"); ok {
 		root.PersistentFlags().Lookup("filename").Value.Set(fname)
+	}
+
+	root.PersistentFlags().StringSliceVarP(envFieldSpecs, "env_field", "e", nil, "[env.BUILDEVENT_ENV_FIELDS] ENV_VAR=field_name, adds the value of an environment variable to every event under the given field name; repeat the flag or separate entries with commas")
+	if specs, ok := os.LookupEnv("BUILDEVENT_ENV_FIELDS"); ok {
+		root.PersistentFlags().Lookup("env_field").Value.Set(specs)
 	}
 
 	root.PersistentFlags().StringVarP(ciProvider, "provider", "p", "", "[env.BUILDEVENT_CIPROVIDER] if unset, will inspect the environment to try to detect common CI providers.")
